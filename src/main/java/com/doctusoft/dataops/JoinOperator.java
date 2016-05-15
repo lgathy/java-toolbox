@@ -1,18 +1,33 @@
 package com.doctusoft.dataops;
 
+import com.google.common.base.Equivalence;
+import com.google.common.base.Supplier;
+import com.google.common.collect.Ordering;
+
 import java.util.*;
-import java.util.function.*;
 
 import static java.util.Objects.*;
 
 public final class JoinOperator<K> {
-    
+
+    public static <K> JoinOperator<K> from(Comparator<K> comparator) {
+        return new JoinOperator<>(comparator);
+    }
+
+    public static <K extends Comparable<? super K>> JoinOperator<K> natural() {
+        return NATURAL_OPERATOR;
+    }
+
+    public static <K extends Comparable<? super K>> JoinOperator<K> forClass(Class<K> keyClass) {
+        return NATURAL_OPERATOR;
+    }
+
     private final Comparator<? super K> keyOrder;
-    
+
     private JoinOperator(Comparator<? super K> keyOrder) {
         this.keyOrder = requireNonNull(keyOrder);
     }
-    
+
     public <L, R> void join(Entries<K, L> leftEntries, Entries<K, R> rightEntries, JoinConsumer<L, R, K> consumer) {
         Side<L> left = new Side<>(leftEntries);
         Side<R> right = new Side<>(rightEntries);
@@ -32,34 +47,27 @@ public final class JoinOperator<K> {
             right.actualValue = null;
         }
     }
-    
+
     public <L, G extends Collection<L>, R> void joinGroupLeft(Entries<K, L> leftEntries,
-        Supplier<? extends G> leftCollectionSupplier, Entries<K, R> rightEntries, JoinConsumer<G, R, K> consumer)
-    {
-        join(new EntryGroups<>(leftEntries, leftCollectionSupplier, this::keyEquals), rightEntries, consumer);
+        Supplier<? extends G> leftCollectionSupplier, Entries<K, R> rightEntries, JoinConsumer<G, R, K> consumer) {
+        join(new EntryGroups<>(leftEntries, leftCollectionSupplier, keyEquivalence), rightEntries, consumer);
     }
-    
+
     public <L, R, G extends Collection<R>> void joinGroupRight(Entries<K, L> leftEntries, Entries<K, R> rightEntries,
-        Supplier<? extends G> rightCollectionSupplier, JoinConsumer<L, G, K> consumer)
-    {
-        join(leftEntries, new EntryGroups<>(rightEntries, rightCollectionSupplier, this::keyEquals), consumer);
+        Supplier<? extends G> rightCollectionSupplier, JoinConsumer<L, G, K> consumer) {
+        join(leftEntries, new EntryGroups<>(rightEntries, rightCollectionSupplier, keyEquivalence), consumer);
     }
-    
+
     public <L, GL extends Collection<L>, R, GR extends Collection<R>> void joinGroupBoth(
         Entries<K, L> leftEntries, Supplier<? extends GL> leftCollectionSupplier,
         Entries<K, R> rightEntries, Supplier<? extends GR> rightCollectionSupplier,
-        JoinConsumer<GL, GR, K> consumer)
-    {
+        JoinConsumer<GL, GR, K> consumer) {
         join(
-            new EntryGroups<>(leftEntries, leftCollectionSupplier, this::keyEquals),
-            new EntryGroups<>(rightEntries, rightCollectionSupplier, this::keyEquals),
+            new EntryGroups<>(leftEntries, leftCollectionSupplier, keyEquivalence),
+            new EntryGroups<>(rightEntries, rightCollectionSupplier, keyEquivalence),
             consumer);
     }
-    
-    private boolean keyEquals(K left, K right) {
-        return left == right || keyOrder.compare(left, right) == 0;
-    }
-    
+
     private int compareNullsLast(K left, K right) {
         if (left == right) {
             return 0;
@@ -72,65 +80,75 @@ public final class JoinOperator<K> {
         }
         return keyOrder.compare(left, right);
     }
-    
-    public static <K> JoinOperator<K> from(Comparator<K> comparator) {
-        return new JoinOperator<>(comparator);
-    }
-    
-    public static <K extends Comparable<? super K>> JoinOperator<K> natural() {
-        return NATURAL_OPERATOR;
-    }
-    
-    public static <K extends Comparable<? super K>> JoinOperator<K> forClass(Class<K> keyClass) {
-        return NATURAL_OPERATOR;
-    }
-    
+
     @SuppressWarnings("rawtypes")
-    private static final JoinOperator NATURAL_OPERATOR = new JoinOperator<>(Comparator.naturalOrder());
-    
+    private static final JoinOperator NATURAL_OPERATOR = new JoinOperator<>(Ordering.natural());
+
     private final class Side<V> {
-        
+
         private final Entries<K, V> entries;
         private final LookbackFilter<K> keyOrderValidator;
-        
+
         private K nextKey;
         private V nextValue;
         private V actualValue;
-        
+
         private Side(Entries<K, V> entries) {
             this.entries = requireNonNull(entries);
             this.keyOrderValidator = LookbackFilter.strictlyMonotone(keyOrder);
             forward();
         }
-        
+
         public boolean hasNext() {
             return nextKey != null;
         }
-        
+
         public void forward() {
             validateKeyOrder();
-            if (!entries.next(this::acceptNext)) {
+            if (!entries.next(acceptNext)) {
                 store(null, null);
             }
         }
-        
-        private void acceptNext(K key, V value) {
-            store(key, value);
-        }
-        
+
         private void validateKeyOrder() {
-            if (nextKey != null && !keyOrderValidator.test(nextKey)) {
+            if (nextKey != null && !keyOrderValidator.apply(nextKey)) {
                 K lastKey = keyOrderValidator.getLastAccepted();
                 throw new IllegalArgumentException("keyOrder violated: " + lastKey + ", " + nextKey);
             }
         }
-        
+
         private void store(K key, V value) {
             actualValue = nextValue;
             nextValue = value;
             nextKey = key;
         }
-        
+
+        private final EntryConsumer<K, V> acceptNext = new EntryConsumer<K, V>() {
+
+            @Override
+            public void accept(K key, V value) {
+                store(key, value);
+            }
+
+            @Override
+            public String toString() {
+                return "Side.acceptNext()";
+            }
+        };
+
     }
+
+    private final Equivalence<K> keyEquivalence = new Equivalence<K>() {
+
+        @Override
+        protected boolean doEquivalent(K left, K right) {
+            return keyOrder.compare(left, right) == 0;
+        }
+
+        @Override
+        protected int doHash(K key) {
+            return key.hashCode();
+        }
+    };
     
 }

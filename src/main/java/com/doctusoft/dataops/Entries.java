@@ -1,80 +1,125 @@
 package com.doctusoft.dataops;
 
-import com.doctusoft.annotation.Beta;
+import com.google.common.base.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 
 import java.util.*;
 import java.util.Map.*;
-import java.util.function.*;
-import java.util.stream.*;
 
-import static java.util.Comparator.*;
 import static java.util.Objects.*;
 
-public interface Entries<K, V> {
+public abstract class Entries<K, V> {
     
-    boolean next(BiConsumer<K, V> action);
+    public abstract boolean next(EntryConsumer<K, V> action);
     
-    default void forEach(BiConsumer<K, V> action) {
+    public static final <K, V> Entries<K, V> forMap(Map<K, V> map) {
+        return new EntriesForIterator<>(map.entrySet().iterator());
+    }
+
+    public static final <K, V> Entries<K, V> forEntries(Iterable<Entry<K, V>> entries) {
+        return new EntriesForIterator<>(entries.iterator());
+    }
+
+    public static <K, V> Entries<K, V> forIterator(Iterator<Entry<K, V>> iterator) {
+        return new EntriesForIterator<>(iterator);
+    }
+
+    public static final <K, V> Entries<K, V> indexValues(Iterable<V> values,
+        Function<? super V, ? extends K> mapperFun) {
+        return new EntriesForValues<>(values.iterator(), mapperFun);
+    }
+
+    public static final <K, V> Entries<K, V> indexValueIterator(Iterator<V> iterator,
+        Function<? super V, ? extends K> mapperFun) {
+        return new EntriesForValues<>(iterator, mapperFun);
+    }
+
+    public static final <K, V> Entries<K, V> lookupKeys(Iterable<K> keys, Function<? super K, ? extends V> lookupFun) {
+        return new EntriesForKeys<>(keys.iterator(), lookupFun);
+    }
+
+    public static final <K, V> Entries<K, V> lookupKeyIterator(Iterator<K> iterator,
+        Function<? super K, ? extends V> lookupFun) {
+        return new EntriesForKeys<>(iterator, lookupFun);
+    }
+
+    public static final <K extends Comparable<? super K>, V> Entries<K, V> sortAndIndex(List<V> values,
+        Function<? super V, ? extends K> mapperFun) {
+        Collections.sort(values, Ordering.natural().onResultOf(mapperFun));
+        return indexValues(values, mapperFun);
+    }
+
+    public void forEach(EntryConsumer<K, V> action) {
         while (next(action)) {
             // nothing more to do here
         }
     }
     
-    default <M extends Map<? super K, ? super V>> M intoMap(M targetMap) {
+    public Entries<K, V> filterKeys(Predicate<? super K> filter) {
+        requireNonNull(filter);
+        return new FilteredEntries<>(this, filter, Predicates.alwaysTrue());
+    }
+
+    public Entries<K, V> filterValues(Predicate<? super V> filter) {
+        requireNonNull(filter);
+        return new FilteredEntries<>(this, Predicates.alwaysTrue(), filter);
+    }
+
+    public <T> Entries<T, V> transformKeys(Function<? super K, ? extends T> keyFun) {
+        requireNonNull(keyFun);
+        return new TransformedEntries<>(this, keyFun, Functions.<V>identity());
+    }
+
+    public <T> Entries<K, T> transformValues(Function<? super V, ? extends T> valueFun) {
+        requireNonNull(valueFun);
+        return new TransformedEntries<>(this, Functions.<K>identity(), valueFun);
+    }
+
+    public ImmutableList<Entry<K, V>> toList() {
+        final ImmutableList.Builder<Entry<K, V>> builder = ImmutableList.builder();
+        final class AddToAction implements EntryConsumer<K, V> {
+            public void accept(K key, V value) {
+                builder.add(Maps.immutableEntry(key, value));
+            }
+        }
+        forEach(new AddToAction());
+        return builder.build();
+    }
+
+    public <T extends List<Entry<K, V>>> T intoList(final T targetList) {
+        requireNonNull(targetList);
+        final class IntoListAction implements EntryConsumer<K, V> {
+            public void accept(K key, V value) {
+                targetList.add(Maps.immutableEntry(key, value));
+            }
+        }
+        forEach(new IntoListAction());
+        return targetList;
+    }
+
+    public <M extends Map<? super K, ? super V>> M intoMap(final M targetMap) {
         requireNonNull(targetMap);
-        forEach((k, v) -> targetMap.put(k, v));
+        final class IntoMapAciton implements EntryConsumer<K, V> {
+            public void accept(K key, V value) {
+                targetMap.put(key, value);
+            }
+        }
+        forEach(new IntoMapAciton());
         return targetMap;
     }
-    
-    default EntryGroups<K, V, ArrayList<V>> intoGroups() {
-        return new EntryGroups<>(this, ArrayList::new);
+
+    public EntryGroups<K, V, ArrayList<V>> intoGroups() {
+        return new EntryGroups<>(this, new Supplier<ArrayList<V>>() {
+            public ArrayList<V> get() {
+                return new ArrayList<>();
+            }
+        });
     }
     
-    default <G extends Collection<V>> EntryGroups<K, V, G> intoGroups(Supplier<? extends G> groupFactory) {
+    public <G extends Collection<V>> EntryGroups<K, V, G> intoGroups(Supplier<? extends G> groupFactory) {
         return new EntryGroups<>(this, groupFactory);
     }
-    
-    @Beta
-    default <T> Entries<K, T> transformValues(Function<? super V, T> valueTransformer) {
-        return new TransformedEntries<>(this, valueTransformer);
-    }
-    
-    static <K, V> Entries<K, V> forMap(Map<K, V> map) {
-        return forIterator(map.entrySet().iterator(), EntryAction.identity());
-    }
-    
-    static <K, V> Entries<K, V> forEntries(Iterable<Entry<K, V>> entries) {
-        return forIterator(entries.iterator(), EntryAction.identity());
-    }
-    
-    static <K, V> Entries<K, V> forEntryStream(Stream<Entry<K, V>> stream) {
-        return forStream(stream, EntryAction.identity());
-    }
-    
-    static <K, V> Entries<K, V> indexValues(Iterable<V> values, Function<? super V, ? extends K> mapper) {
-        return indexValueIterator(values.iterator(), mapper);
-    }
-    
-    static <K, V> Entries<K, V> indexValueIterator(Iterator<V> iterator, Function<? super V, ? extends K> mapper) {
-        return forIterator(iterator, EntryAction.indexValues(mapper));
-    }
-    
-    static <K, V> Entries<K, V> indexValueStream(Stream<V> stream, Function<? super V, ? extends K> mapper) {
-        return forStream(stream, EntryAction.indexValues(mapper));
-    }
-    
-    static <K, V, T> Entries<K, V> forIterator(Iterator<T> iterator, EntryAction<K, V, T> action) {
-        return new EntriesForIterator<>(iterator, action);
-    }
-    
-    static <K, V, T> Entries<K, V> forStream(Stream<T> stream, EntryAction<K, V, T> action) {
-        return new EntriesForStream<>(stream.spliterator(), action);
-    }
-    
-    static <K extends Comparable<? super K>, V> Entries<K, V> sortAndIndex(
-        List<V> values, Function<? super V, ? extends K> mapper) {
-        values.sort(comparing(mapper));
-        return indexValues(values, mapper);
-    }
-    
+
 }

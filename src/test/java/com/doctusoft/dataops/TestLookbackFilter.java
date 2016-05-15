@@ -2,15 +2,17 @@ package com.doctusoft.dataops;
 
 import org.junit.Test;
 
+import com.google.common.base.Equivalence;
+
 import static org.junit.Assert.assertEquals;
 
 public final class TestLookbackFilter {
-    
+
     private static String ALMA = "Alma";
     private String alma = "alma";
-    
+
     private LookbackFilter<String> filter;
-    
+
     @Test
     public void testNotTheSame() {
         filter = LookbackFilter.notTheSame();
@@ -19,7 +21,7 @@ public final class TestLookbackFilter {
         test(alma, false);
         test(new String(alma), true);
     }
-    
+
     @Test
     public void testNotEquals() {
         filter = LookbackFilter.notEquals();
@@ -28,17 +30,17 @@ public final class TestLookbackFilter {
         test(alma, false);
         test(new String(alma), false);
     }
-    
+
     @Test
     public void testNotEquivalent() {
-        filter = LookbackFilter.notEquivalent((a, b) -> a.equalsIgnoreCase(b));
+        filter = LookbackFilter.notEquivalent(EQUALS_IGNORE_CASE);
         test(ALMA, true);
         test(alma, false);
         test(new String(alma), false);
         test("almafa", true);
         test(alma, true);
     }
-    
+
     @Test
     public void testMonotone() {
         filter = LookbackFilter.monotone();
@@ -49,7 +51,7 @@ public final class TestLookbackFilter {
         test(ALMA, false);
         test(new String(alma), true);
     }
-    
+
     @Test
     public void testMonotoneIgnoreCase() {
         filter = LookbackFilter.monotone(String.CASE_INSENSITIVE_ORDER);
@@ -61,7 +63,7 @@ public final class TestLookbackFilter {
         test("almafa", true);
         test(alma, false);
     }
-    
+
     @Test
     public void testStrictlyMonotone() {
         filter = LookbackFilter.strictlyMonotone();
@@ -74,7 +76,7 @@ public final class TestLookbackFilter {
         test("almafa", false);
         test(alma, false);
     }
-    
+
     @Test
     public void testStrictlyMonotoneIgnoreCase() {
         filter = LookbackFilter.strictlyMonotone(String.CASE_INSENSITIVE_ORDER);
@@ -86,7 +88,7 @@ public final class TestLookbackFilter {
         test("almafa", false);
         test(alma, false);
     }
-    
+
     @Test
     public void testNoDuplicates() {
         filter = LookbackFilter.noDuplicates();
@@ -99,7 +101,7 @@ public final class TestLookbackFilter {
         test(ALMA, true);
         test(ALMA, false);
     }
-    
+
     @Test
     public void testNoDuplicatesIgnoreCase() {
         filter = LookbackFilter.noDuplicates(String.CASE_INSENSITIVE_ORDER);
@@ -110,9 +112,22 @@ public final class TestLookbackFilter {
         test(alma, true);
         test(ALMA, false);
     }
-    
+
+    private static final Equivalence<String> EQUALS_IGNORE_CASE = new Equivalence<String>() {
+
+        @Override
+        protected boolean doEquivalent(String a, String b) {
+            return a.equalsIgnoreCase(b);
+        }
+
+        @Override
+        protected int doHash(String t) {
+            return t.toLowerCase().hashCode();
+        }
+    };
+
     private void test(String input, boolean expected) {
-        assertEquals(expected, filter.test(input));
+        assertEquals(expected, filter.apply(input));
     }
     
 }

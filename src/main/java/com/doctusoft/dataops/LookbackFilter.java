@@ -1,8 +1,11 @@
 package com.doctusoft.dataops;
 
-import java.util.*;
-import java.util.function.*;
+import com.google.common.base.Equivalence;
+import com.google.common.base.Predicate;
 
+import java.util.*;
+
+import static com.google.common.collect.Ordering.natural;
 import static java.util.Objects.*;
 
 /**
@@ -12,7 +15,8 @@ public abstract class LookbackFilter<T> implements Predicate<T> {
     
     private T lastAccepted;
     
-    protected LookbackFilter() {}
+    protected LookbackFilter() {
+    }
     
     protected abstract boolean acceptNext(T lastAccepted, T next);
     
@@ -25,7 +29,7 @@ public abstract class LookbackFilter<T> implements Predicate<T> {
     }
     
     @Override
-    public final boolean test(T input) {
+    public final boolean apply(T input) {
         requireNonNull(input);
         if (lastAccepted == null || acceptNext(lastAccepted, input)) {
             lastAccepted = input;
@@ -48,19 +52,19 @@ public abstract class LookbackFilter<T> implements Predicate<T> {
     }
     
     public static final <T> LookbackFilter<T> notTheSame() {
-        return new NotEquivalent<>((a, b) -> a == b);
+        return new NotEquivalent<>(Equivalence.identity());
     }
     
     public static final <T> LookbackFilter<T> notEquals() {
-        return new NotEquivalent<>(Objects::equals);
+        return new NotEquivalent<>(Equivalence.equals());
     }
     
-    public static final <T> LookbackFilter<T> notEquivalent(BiPredicate<? super T, ? super T> equivalence) {
+    public static final <T> LookbackFilter<T> notEquivalent(Equivalence<? super T> equivalence) {
         return new NotEquivalent<>(equivalence);
     }
     
     public static final <T extends Comparable<? super T>> LookbackFilter<T> noDuplicates() {
-        return noDuplicates(Comparator.naturalOrder());
+        return noDuplicates(natural());
     }
     
     public static final <T> LookbackFilter<T> noDuplicates(Comparator<? super T> comparator) {
@@ -68,7 +72,7 @@ public abstract class LookbackFilter<T> implements Predicate<T> {
     }
     
     public static final <T extends Comparable<? super T>> LookbackFilter<T> monotone() {
-        return monotone(Comparator.naturalOrder());
+        return monotone(natural());
     }
     
     public static final <T> LookbackFilter<T> monotone(Comparator<? super T> comparator) {
@@ -76,7 +80,7 @@ public abstract class LookbackFilter<T> implements Predicate<T> {
     }
     
     public static final <T extends Comparable<? super T>> LookbackFilter<T> strictlyMonotone() {
-        return strictlyMonotone(Comparator.naturalOrder());
+        return strictlyMonotone(natural());
     }
     
     public static final <T> LookbackFilter<T> strictlyMonotone(Comparator<? super T> comparator) {
@@ -85,15 +89,15 @@ public abstract class LookbackFilter<T> implements Predicate<T> {
     
     private static final class NotEquivalent<T> extends LookbackFilter<T> {
         
-        private final BiPredicate<? super T, ? super T> equivalence;
+        private final Equivalence<? super T> equivalence;
         
-        private NotEquivalent(BiPredicate<? super T, ? super T> equivalence) {
+        private NotEquivalent(Equivalence<? super T> equivalence) {
             this.equivalence = requireNonNull(equivalence);
         }
         
         @Override
         protected boolean acceptNext(T lastAccepted, T next) {
-            return !equivalence.test(lastAccepted, next);
+            return !equivalence.equivalent(lastAccepted, next);
         }
         
         @Override
@@ -121,7 +125,7 @@ public abstract class LookbackFilter<T> implements Predicate<T> {
         
         @Override
         protected boolean acceptNext(T lastAccepted, T next) {
-            return validPredicate.test(comparator.compare(lastAccepted, next));
+            return validPredicate.apply(comparator.compare(lastAccepted, next));
         }
         
         @Override
@@ -140,21 +144,21 @@ public abstract class LookbackFilter<T> implements Predicate<T> {
         
         NO_DUPLICATES {
             @Override
-            public boolean test(Integer compareResult) {
+            public boolean apply(Integer compareResult) {
                 return compareResult.intValue() != 0;
             }
         },
         
         MONOTONE {
             @Override
-            public boolean test(Integer compareResult) {
+            public boolean apply(Integer compareResult) {
                 return compareResult.intValue() <= 0;
             }
         },
         
         STRICTLY_MONOTONE {
             @Override
-            public boolean test(Integer compareResult) {
+            public boolean apply(Integer compareResult) {
                 return compareResult.intValue() < 0;
             }
         };

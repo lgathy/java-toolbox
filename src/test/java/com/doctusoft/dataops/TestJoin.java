@@ -1,219 +1,169 @@
 package com.doctusoft.dataops;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 
-import java.util.*;
 import java.util.Map.*;
-import java.util.function.*;
 
-import static com.doctusoft.dataops.Entries.forEntries;
-import static java.util.Arrays.*;
-import static java.util.Objects.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.mockito.Mockito.*;
 
 public final class TestJoin {
-    
+
     private JoinOperator<Integer> joinOperator;
     private JoinConsumer<String, Boolean, Integer> joinMock;
     private InOrder order;
-    
+
     @Before
     public void setup() {
         joinOperator = JoinOperator.natural();
         joinMock = mock(JoinConsumer.class);
         order = inOrder(joinMock);
     }
-    
+
     @Test
     public void testInnerJoin() throws Exception {
+
         joinOperator.join(
-            numberedEntries("Alfa", "Beta", "Gamma"),
-            numberedEntries(true, false, true),
+            Entries.forMap(ImmutableMap.of(1, "Alfa", 2, "Beta", 3, "Gamma")),
+            Entries.forMap(ImmutableMap.of(1, true, 2, false, 3, true)),
             joinMock
-            );
-        verifyJoin("Alfa", true, 1);
-        verifyJoin("Beta", false, 2);
-        verifyJoin("Gamma", true, 3);
+        );
+        verifyJoin("Alfa", 1, true);
+        verifyJoin("Beta", 2, false);
+        verifyJoin("Gamma", 3, true);
         verifyNoMoreInteractions(joinMock);
     }
-    
+
     @Test
     public void testLeftOuterJoin() throws Exception {
+
         joinOperator.join(
-            numberedEntries("Alfa", "Beta", "Gamma"),
-            forEntries(asList(entry(2, false), entry(3, true))),
+            Entries.forMap(ImmutableMap.of(1, "Alfa", 2, "Beta", 3, "Gamma")),
+            Entries.forMap(ImmutableMap.of(2, false, 3, true)),
             joinMock
-            );
-        verifyJoin("Alfa", null, 1);
-        verifyJoin("Beta", false, 2);
-        verifyJoin("Gamma", true, 3);
+        );
+        verifyJoin("Alfa", 1, null);
+        verifyJoin("Beta", 2, false);
+        verifyJoin("Gamma", 3, true);
         verifyNoMoreInteractions(joinMock);
     }
-    
-    @Test
-    public void testLeftOuterJoinWithNullValue() throws Exception {
-        joinOperator.join(
-            numberedEntries("Alfa", "Beta", "Gamma"),
-            numberedEntries(null, false, true),
-            joinMock
-            );
-        verifyJoin("Alfa", null, 1);
-        verifyJoin("Beta", false, 2);
-        verifyJoin("Gamma", true, 3);
-        verifyNoMoreInteractions(joinMock);
-    }
-    
+
     @Test
     public void testRightOuterJoin() throws Exception {
-        
+
         joinOperator.join(
-            forEntries(asList(entry(1, "Alfa"), entry(3, "Gamma"))),
-            numberedEntries(true, false, false),
+            Entries.forMap(ImmutableMap.of(1, "Alfa", 3, "Gamma")),
+            Entries.forMap(ImmutableMap.of(1, true, 2, false, 3, false)),
             joinMock
-            );
-        verifyJoin("Alfa", true, 1);
-        verifyJoin(null, false, 2);
-        verifyJoin("Gamma", false, 3);
+        );
+        verifyJoin("Alfa", 1, true);
+        verifyJoin(null, 2, false);
+        verifyJoin("Gamma", 3, false);
         verifyNoMoreInteractions(joinMock);
     }
-    
-    @Test
-    public void testRightOuterJoinWithNullValue() throws Exception {
-        
-        joinOperator.join(
-            numberedEntries("Alfa", null, "Gamma"),
-            numberedEntries(true, false, false),
-            joinMock
-            );
-        verifyJoin("Alfa", true, 1);
-        verifyJoin(null, false, 2);
-        verifyJoin("Gamma", false, 3);
-        verifyNoMoreInteractions(joinMock);
-    }
-    
+
     @Test
     public void testFullOuterJoin() throws Exception {
-        
+
         joinOperator.join(
-            forEntries(asList(entry(2, "Beta"), entry(3, "Gamma"))),
-            forEntries(asList(entry(1, true), entry(3, false))),
+            Entries.forMap(ImmutableMap.of(2, "Beta", 3, "Gamma")),
+            Entries.forMap(ImmutableMap.of(1, true, 3, false)),
             joinMock
-            );
-        verifyJoin(null, true, 1);
-        verifyJoin("Beta", null, 2);
-        verifyJoin("Gamma", false, 3);
+        );
+        verifyJoin(null, 1, true);
+        verifyJoin("Beta", 2, null);
+        verifyJoin("Gamma", 3, false);
         verifyNoMoreInteractions(joinMock);
     }
-    
+
     @Test
     public void testFullOuterJoinWithNullValues() throws Exception {
-        
+
         joinOperator.join(
-            numberedEntries(null, "Beta", "Gamma"),
-            numberedEntries(true, null, false),
+            Entries.forEntries(ImmutableList.of(entry(1, (String) null), entry(2, "Beta"), entry(3, "Gamma"))),
+            Entries.forEntries(ImmutableList.of(entry(1, true), entry(2, (Boolean) null), entry(3, false))),
             joinMock
-            );
-        verifyJoin(null, true, 1);
-        verifyJoin("Beta", null, 2);
-        verifyJoin("Gamma", false, 3);
+        );
+        verifyJoin(null, 1, true);
+        verifyJoin("Beta", 2, null);
+        verifyJoin("Gamma", 3, false);
         verifyNoMoreInteractions(joinMock);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testWrongOrderOnLeft() throws Exception {
         try {
             joinOperator.join(
-                forEntries(asList(entry(1, "Alfa"), entry(3, "Gamma"), entry(2, "Beta"))),
-                numberedEntries(true, false, true),
+                Entries.forMap(ImmutableMap.of(1, "Alfa", 3, "Gamma", 2, "Beta")),
+                Entries.forMap(ImmutableMap.of(1, true, 2, false, 3, true)),
                 joinMock
-                );
+            );
         } finally {
-            verifyJoin("Alfa", true, 1);
-            verifyJoin(null, false, 2);
-            verifyJoin("Gamma", true, 3);
+            verifyJoin("Alfa", 1, true);
+            verifyJoin(null, 2, false);
+            verifyJoin("Gamma", 3, true);
             verifyNoMoreInteractions(joinMock);
         }
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testWrongOrderOnRight() throws Exception {
         try {
             joinOperator.join(
-                numberedEntries("Alfa", "Beta", "Gamma"),
-                forEntries(asList(entry(2, true), entry(3, false), entry(1, true))),
+                Entries.forMap(ImmutableMap.of(1, "Alfa", 2, "Beta", 3, "Gamma")),
+                Entries.forMap(ImmutableMap.of(2, true, 3, false, 1, true)),
                 joinMock
-                );
+            );
         } finally {
-            verifyJoin("Alfa", null, 1);
-            verifyJoin("Beta", true, 2);
-            verifyJoin("Gamma", false, 3);
+            verifyJoin("Alfa", 1, null);
+            verifyJoin("Beta", 2, true);
+            verifyJoin("Gamma", 3, false);
             verifyNoMoreInteractions(joinMock);
         }
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testDuplicationOnLeft() throws Exception {
         try {
             joinOperator.join(
-                forEntries(asList(entry(1, "Alfa"), entry(2, "Beta"), entry(2, "Beta"))),
-                forEntries(asList(entry(1, true), entry(2, false), entry(3, true))),
+                Entries.forEntries(ImmutableList.of(entry(1, "Alfa"), entry(2, "Beta"), entry(2, "Beta"))),
+                Entries.forEntries(ImmutableList.of(entry(1, true), entry(2, false), entry(3, true))),
                 joinMock
-                );
+            );
         } finally {
-            verifyJoin("Alfa", true, 1);
-            verifyJoin("Beta", false, 2);
+            verifyJoin("Alfa", 1, true);
+            verifyJoin("Beta", 2, false);
             verifyNoMoreInteractions(joinMock);
         }
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testDuplicationOnRight() throws Exception {
         try {
             joinOperator.join(
-                forEntries(asList(entry(1, "Alfa"), entry(2, "Beta"), entry(3, "Gamma"))),
-                forEntries(asList(entry(1, true), entry(2, false), entry(2, true))),
+                Entries.forEntries(ImmutableList.of(entry(1, "Alfa"), entry(2, "Beta"), entry(3, "Gamma"))),
+                Entries.forEntries(ImmutableList.of(entry(1, true), entry(2, false), entry(2, true))),
                 joinMock
-                );
+            );
         } finally {
-            verifyJoin("Alfa", true, 1);
-            verifyJoin("Beta", false, 2);
+            verifyJoin("Alfa", 1, true);
+            verifyJoin("Beta", 2, false);
             verifyNoMoreInteractions(joinMock);
         }
     }
-    
-    private void verifyJoin(String left, Boolean right, Integer key) {
+
+    private void verifyJoin(String left, Integer key, Boolean right) {
         order.verify(joinMock).accept(left, right, key);
     }
-    
+
     private static <K, V> Entry<K, V> entry(K key, V value) {
-        requireNonNull(key);
-        return new AbstractMap.SimpleImmutableEntry<>(key, value);
-    }
-    
-    @SafeVarargs
-    private static final <V> Entries<Integer, V> numberedEntries(V... values) {
-        return new NumberedEntries<>(asList(values));
-    }
-    
-    private static final class NumberedEntries<V> implements Entries<Integer, V> {
-        
-        private final Iterator<V> iterator;
-        private int index = 1;
-        
-        NumberedEntries(Iterable<V> values) {
-            this.iterator = values.iterator();
-        }
-        
-        @Override
-        public boolean next(BiConsumer<Integer, V> action) {
-            if (iterator.hasNext()) {
-                action.accept(index++, iterator.next());
-                return true;
-            }
-            return false;
-        }
+        checkNotNull(key);
+        return Maps.immutableEntry(key, value);
     }
     
 }

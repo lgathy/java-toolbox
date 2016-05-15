@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.doctusoft.toolbox</groupId>
-    <artifactId>java-toolbox</artifactId>
+    <artifactId>java-toolbox-jdk7</artifactId>
     <version>0.1-SNAPSHOT</version>
 
     <name>Doctusoft Java Toolbox</name>
@@ -15,8 +15,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
         <downloadSources>true</downloadSources>
         <downloadJavadocs>true</downloadJavadocs>
         <version.maven.clean.plugin>2.6.1</version.maven.clean.plugin>
@@ -43,6 +43,19 @@
 
 
     <dependencies>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <optional>true</optional>
+            <version>3.0.1</version>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -61,12 +74,7 @@
             <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
-        <!--<dependency>-->
-        <!--<groupId>org.easymock</groupId>-->
-        <!--<artifactId>easymock</artifactId>-->
-        <!--<version>3.2</version>-->
-        <!--<scope>test</scope>-->
-        <!--</dependency>-->
+
     </dependencies>
 
 

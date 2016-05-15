@@ -2,8 +2,9 @@ package com.doctusoft.math;
 
 import com.doctusoft.annotation.Beta;
 
-import static com.doctusoft.java.Failsafe.checkArgument;
-import static com.doctusoft.math.Interval.*;
+import static com.doctusoft.math.Intervals.equalValues;
+import static com.doctusoft.math.Intervals.monotonicIncreasingValues;
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.*;
 
 @Beta
@@ -14,7 +15,7 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
         requireNonNull(lowerBound, "lowerBound");
         requireNonNull(upperBound, "upperBound");
         checkArgument(monotonicIncreasingValues(lowerBound, upperBound), 
-            () -> "Invalid interval: " + lowerBound + " > " + upperBound);
+            "Invalid interval: %s > %s", lowerBound, upperBound);
         return new ClosedRange<>(lowerBound, upperBound);
     }
     

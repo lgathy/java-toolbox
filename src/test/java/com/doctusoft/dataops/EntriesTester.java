@@ -10,17 +10,25 @@ final class EntriesTester<K, V> {
         this.entries = entries;
     }
     
-    public EntriesTester<K, V> assertNext(K key, V value) {
-        assertTrue(entries.next((k, v) -> {
-            assertEquals(key, k);
-            assertEquals(value, v);
+    public EntriesTester<K, V> assertNext(final K key, final V value) {
+        assertTrue(entries.next(new EntryConsumer<K, V>() {
+            public void accept(K k, V v) {
+                assertEquals(key, k);
+                assertEquals(value, v);
+            }
         }));
         return this;
     }
-    
+
     public EntriesTester<K, V> assertNoMore() {
-        assertFalse(entries.next((k, v) -> fail()));
+        assertFalse(entries.next(failure));
         return this;
     }
+
+    private final EntryConsumer<K, V> failure = new EntryConsumer<K, V>() {
+        public void accept(K k, V v) {
+            fail();
+        }
+    };
     
 }
