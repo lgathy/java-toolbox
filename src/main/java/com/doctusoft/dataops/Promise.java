@@ -37,7 +37,7 @@ public final class Promise<R, F> {
     }
     
     public @Nullable R getResult() {
-        checkState(hasResult(), "Unexpected result! TODO");
+        checkState(hasResult(), "Unexpected failure: %s", failure);
         return result;
     }
     
@@ -46,7 +46,7 @@ public final class Promise<R, F> {
     }
     
     public @Nonnull F getFailure() {
-        checkState(isFailed(), "Unexcepted result! TODO");
+        checkState(isFailed(), "Unexpected result: %s", result);
         return failure;
     }
     

@@ -36,7 +36,7 @@ public final class Outcome<R, F> {
     }
     
     public @Nullable R getResult() {
-        checkState(hasResult(), "Unexpected result! FAILURE with message: {}", failure);
+        checkState(hasResult(), "Unexpected failure: %s", failure);
         return result;
     }
     
@@ -45,7 +45,7 @@ public final class Outcome<R, F> {
     }
     
     public @Nonnull F getFailure() {
-        checkState(isFailure(), "Unexcepted result! SUCCESS with value: {}", result);
+        checkState(isFailure(), "Unexpected result: %s", result);
         return failure;
     }
     
