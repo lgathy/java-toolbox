@@ -3,12 +3,22 @@ package com.doctusoft.math;
 import com.doctusoft.annotation.Beta;
 import com.doctusoft.java.Failsafe;
 
+import static java.util.Objects.requireNonNull;
+
 @Beta
 @SuppressWarnings({"rawtypes", "unchecked"})
 public final class Intervals {
     
     private Intervals() {
         throw Failsafe.staticClassInstantiated();
+    }
+
+    public static <C extends Comparable> void mustContain(Interval<C> interval, C value, String description) {
+        requireNonNull(interval, "interval");
+        requireNonNull(value, "value");
+        if (!interval.contains(value)) {
+            throw new IllegalArgumentException("Invalid " + description + ": " + value);
+        }
     }
 
     public static <C extends Comparable> boolean equalValues(C a1, C a2) {
