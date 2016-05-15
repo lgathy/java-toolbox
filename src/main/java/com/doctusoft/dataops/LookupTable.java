@@ -5,6 +5,8 @@ import com.doctusoft.math.ClosedRange;
 import java.util.*;
 import java.util.function.*;
 
+import static com.doctusoft.dataops.Entries.forMap;
+import static com.doctusoft.dataops.Entries.indexValues;
 import static com.doctusoft.java.Failsafe.checkArgument;
 import static java.util.Objects.*;
 
@@ -12,18 +14,17 @@ public final class LookupTable<K, V> {
 
     public static <K, V> LookupTable<K, V> fromValues(
         Iterable<V> values,
-        Function<? super V, Integer> valueOrdinalFun,
+        ToIntFunction<? super V> valueOrdinalFun,
         ToIntFunction<? super K> keyOrdinalFun,
         ClosedRange<Integer> validRange) {
-        return new LookupTable<>(validRange, keyOrdinalFun, Entries.indexValues(values, valueOrdinalFun));
+        return new LookupTable<>(validRange, keyOrdinalFun, indexValues(values, v -> valueOrdinalFun.applyAsInt(v)));
     }
 
     public static <K, V> LookupTable<K, V> fromMap(
         Map<K, V> map,
         ToIntFunction<? super K> keyOrdinalFun,
         ClosedRange<Integer> validRange) {
-        return new LookupTable<>(validRange, keyOrdinalFun,
-            Entries.forMap(map).transformKeys(k -> keyOrdinalFun.applyAsInt(k)));
+        return new LookupTable<>(validRange, keyOrdinalFun, forMap(map).transformKeys(k -> keyOrdinalFun.applyAsInt(k)));
     }
 
     public static <K, V> LookupTable<K, V> fromEntries(
@@ -66,7 +67,7 @@ public final class LookupTable<K, V> {
     }
 
     public V get(int ordinal) {
-        validRange.checkValid(ordinal, "index");
+        validRange.mustContain(ordinal, "index");
         return (V) table[ordinal];
     }
 

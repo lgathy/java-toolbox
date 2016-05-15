@@ -12,7 +12,7 @@ public interface Interval<C extends Comparable> {
     
     boolean contains(C value);
     
-    default void checkValid(C value, String description) {
+    default void mustContain(C value, String description) {
         if (!contains(requireNonNull(value))) {
             throw new IllegalArgumentException("Invalid " + description + ": " + value);
         }
