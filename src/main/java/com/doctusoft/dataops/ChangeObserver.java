@@ -39,7 +39,6 @@ public final class ChangeObserver<T> implements Consumer<T> {
         this.changeVisitor = changeVisitor;
     }
     
-    @Override
     public void accept(T input) {
         requireNonNull(input);
         if (lastValue != null && changePredicate.test(lastValue, input)) {

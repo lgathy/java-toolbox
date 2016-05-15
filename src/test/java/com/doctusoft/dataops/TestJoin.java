@@ -32,7 +32,7 @@ public final class TestJoin {
             numberedEntries("Alfa", "Beta", "Gamma"),
             numberedEntries(true, false, true),
             joinMock
-            );
+        );
         verifyJoin("Alfa", true, 1);
         verifyJoin("Beta", false, 2);
         verifyJoin("Gamma", true, 3);
@@ -45,7 +45,7 @@ public final class TestJoin {
             numberedEntries("Alfa", "Beta", "Gamma"),
             forEntries(asList(entry(2, false), entry(3, true))),
             joinMock
-            );
+        );
         verifyJoin("Alfa", null, 1);
         verifyJoin("Beta", false, 2);
         verifyJoin("Gamma", true, 3);
@@ -58,7 +58,7 @@ public final class TestJoin {
             numberedEntries("Alfa", "Beta", "Gamma"),
             numberedEntries(null, false, true),
             joinMock
-            );
+        );
         verifyJoin("Alfa", null, 1);
         verifyJoin("Beta", false, 2);
         verifyJoin("Gamma", true, 3);
@@ -72,7 +72,7 @@ public final class TestJoin {
             forEntries(asList(entry(1, "Alfa"), entry(3, "Gamma"))),
             numberedEntries(true, false, false),
             joinMock
-            );
+        );
         verifyJoin("Alfa", true, 1);
         verifyJoin(null, false, 2);
         verifyJoin("Gamma", false, 3);
@@ -86,7 +86,7 @@ public final class TestJoin {
             numberedEntries("Alfa", null, "Gamma"),
             numberedEntries(true, false, false),
             joinMock
-            );
+        );
         verifyJoin("Alfa", true, 1);
         verifyJoin(null, false, 2);
         verifyJoin("Gamma", false, 3);
@@ -100,7 +100,7 @@ public final class TestJoin {
             forEntries(asList(entry(2, "Beta"), entry(3, "Gamma"))),
             forEntries(asList(entry(1, true), entry(3, false))),
             joinMock
-            );
+        );
         verifyJoin(null, true, 1);
         verifyJoin("Beta", null, 2);
         verifyJoin("Gamma", false, 3);
@@ -114,7 +114,7 @@ public final class TestJoin {
             numberedEntries(null, "Beta", "Gamma"),
             numberedEntries(true, null, false),
             joinMock
-            );
+        );
         verifyJoin(null, true, 1);
         verifyJoin("Beta", null, 2);
         verifyJoin("Gamma", false, 3);
@@ -128,7 +128,7 @@ public final class TestJoin {
                 forEntries(asList(entry(1, "Alfa"), entry(3, "Gamma"), entry(2, "Beta"))),
                 numberedEntries(true, false, true),
                 joinMock
-                );
+            );
         } finally {
             verifyJoin("Alfa", true, 1);
             verifyJoin(null, false, 2);
@@ -144,7 +144,7 @@ public final class TestJoin {
                 numberedEntries("Alfa", "Beta", "Gamma"),
                 forEntries(asList(entry(2, true), entry(3, false), entry(1, true))),
                 joinMock
-                );
+            );
         } finally {
             verifyJoin("Alfa", null, 1);
             verifyJoin("Beta", true, 2);
@@ -160,7 +160,7 @@ public final class TestJoin {
                 forEntries(asList(entry(1, "Alfa"), entry(2, "Beta"), entry(2, "Beta"))),
                 forEntries(asList(entry(1, true), entry(2, false), entry(3, true))),
                 joinMock
-                );
+            );
         } finally {
             verifyJoin("Alfa", true, 1);
             verifyJoin("Beta", false, 2);
@@ -175,7 +175,7 @@ public final class TestJoin {
                 forEntries(asList(entry(1, "Alfa"), entry(2, "Beta"), entry(3, "Gamma"))),
                 forEntries(asList(entry(1, true), entry(2, false), entry(2, true))),
                 joinMock
-                );
+            );
         } finally {
             verifyJoin("Alfa", true, 1);
             verifyJoin("Beta", false, 2);

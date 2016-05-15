@@ -58,7 +58,7 @@ public abstract class TestRandomEntries<V> {
         
         @Override
         protected Entries<String, String> toEntries(Function<String, String> mapper, List<String> keys) {
-            return Entries.forStream(keys.stream().sequential(), EntryAction.lookupValues(mapper));
+            return Entries.lookupKeyStream(keys.stream().sequential(), mapper);
         }
     }
     

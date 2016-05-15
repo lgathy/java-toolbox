@@ -7,6 +7,18 @@ import static java.util.Objects.*;
 
 public final class JoinOperator<K> {
     
+    public static <K> JoinOperator<K> from(Comparator<K> comparator) {
+        return new JoinOperator<>(comparator);
+    }
+
+    public static <K extends Comparable<? super K>> JoinOperator<K> natural() {
+        return NATURAL_OPERATOR;
+    }
+
+    public static <K extends Comparable<? super K>> JoinOperator<K> forClass(Class<K> keyClass) {
+        return NATURAL_OPERATOR;
+    }
+
     private final Comparator<? super K> keyOrder;
     
     private JoinOperator(Comparator<? super K> keyOrder) {
@@ -34,22 +46,19 @@ public final class JoinOperator<K> {
     }
     
     public <L, G extends Collection<L>, R> void joinGroupLeft(Entries<K, L> leftEntries,
-        Supplier<? extends G> leftCollectionSupplier, Entries<K, R> rightEntries, JoinConsumer<G, R, K> consumer)
-    {
+        Supplier<? extends G> leftCollectionSupplier, Entries<K, R> rightEntries, JoinConsumer<G, R, K> consumer) {
         join(new EntryGroups<>(leftEntries, leftCollectionSupplier, this::keyEquals), rightEntries, consumer);
     }
     
     public <L, R, G extends Collection<R>> void joinGroupRight(Entries<K, L> leftEntries, Entries<K, R> rightEntries,
-        Supplier<? extends G> rightCollectionSupplier, JoinConsumer<L, G, K> consumer)
-    {
+        Supplier<? extends G> rightCollectionSupplier, JoinConsumer<L, G, K> consumer) {
         join(leftEntries, new EntryGroups<>(rightEntries, rightCollectionSupplier, this::keyEquals), consumer);
     }
     
     public <L, GL extends Collection<L>, R, GR extends Collection<R>> void joinGroupBoth(
         Entries<K, L> leftEntries, Supplier<? extends GL> leftCollectionSupplier,
         Entries<K, R> rightEntries, Supplier<? extends GR> rightCollectionSupplier,
-        JoinConsumer<GL, GR, K> consumer)
-    {
+        JoinConsumer<GL, GR, K> consumer) {
         join(
             new EntryGroups<>(leftEntries, leftCollectionSupplier, this::keyEquals),
             new EntryGroups<>(rightEntries, rightCollectionSupplier, this::keyEquals),
@@ -71,18 +80,6 @@ public final class JoinOperator<K> {
             return -1;
         }
         return keyOrder.compare(left, right);
-    }
-    
-    public static <K> JoinOperator<K> from(Comparator<K> comparator) {
-        return new JoinOperator<>(comparator);
-    }
-    
-    public static <K extends Comparable<? super K>> JoinOperator<K> natural() {
-        return NATURAL_OPERATOR;
-    }
-    
-    public static <K extends Comparable<? super K>> JoinOperator<K> forClass(Class<K> keyClass) {
-        return NATURAL_OPERATOR;
     }
     
     @SuppressWarnings("rawtypes")

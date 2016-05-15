@@ -13,7 +13,7 @@ public final class Hexadecimal {
     public static void appendFixWidth32bit(StringBuilder buf, int unsignedInt) {
         int ln = buf.length();
         buf.append("00000000");
-        for (int i = ln+7, base = unsignedInt, mod; i >= ln && base != 0; --i) {
+        for (int i = ln + 7, base = unsignedInt, mod; i >= ln && base != 0; --i) {
             mod = base & MASK;
             buf.setCharAt(i, DIGITS[mod]);
             base >>>= BITS;
@@ -31,7 +31,7 @@ public final class Hexadecimal {
         buf.append("0000000000000000");
         long base = unsignedLong;
         long mod;
-        for (int i = ln+15; i >= ln && base != 0; --i) {
+        for (int i = ln + 15; i >= ln && base != 0; --i) {
             mod = base & LMASK;
             buf.setCharAt(i, DIGITS[(int) mod]);
             base >>>= BITS;
@@ -86,5 +86,5 @@ public final class Hexadecimal {
     
     private static final String[] STR = {
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" };
-        
+
 }

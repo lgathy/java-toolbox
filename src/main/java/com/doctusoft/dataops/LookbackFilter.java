@@ -3,6 +3,7 @@ package com.doctusoft.dataops;
 import java.util.*;
 import java.util.function.*;
 
+import static java.util.Comparator.*;
 import static java.util.Objects.*;
 
 /**
@@ -60,7 +61,7 @@ public abstract class LookbackFilter<T> implements Predicate<T> {
     }
     
     public static final <T extends Comparable<? super T>> LookbackFilter<T> noDuplicates() {
-        return noDuplicates(Comparator.naturalOrder());
+        return noDuplicates(naturalOrder());
     }
     
     public static final <T> LookbackFilter<T> noDuplicates(Comparator<? super T> comparator) {
@@ -68,7 +69,7 @@ public abstract class LookbackFilter<T> implements Predicate<T> {
     }
     
     public static final <T extends Comparable<? super T>> LookbackFilter<T> monotone() {
-        return monotone(Comparator.naturalOrder());
+        return monotone(naturalOrder());
     }
     
     public static final <T> LookbackFilter<T> monotone(Comparator<? super T> comparator) {
@@ -76,7 +77,7 @@ public abstract class LookbackFilter<T> implements Predicate<T> {
     }
     
     public static final <T extends Comparable<? super T>> LookbackFilter<T> strictlyMonotone() {
-        return strictlyMonotone(Comparator.naturalOrder());
+        return strictlyMonotone(naturalOrder());
     }
     
     public static final <T> LookbackFilter<T> strictlyMonotone(Comparator<? super T> comparator) {

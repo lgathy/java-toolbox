@@ -13,7 +13,7 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     public static final <C extends Comparable> ClosedRange<C> create(C lowerBound, C upperBound) {
         requireNonNull(lowerBound, "lowerBound");
         requireNonNull(upperBound, "upperBound");
-        checkArgument(monotonicIncreasingValues(lowerBound, upperBound), 
+        checkArgument(monotonicIncreasingValues(lowerBound, upperBound),
             () -> "Invalid interval: " + lowerBound + " > " + upperBound);
         return new ClosedRange<>(lowerBound, upperBound);
     }

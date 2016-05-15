@@ -84,7 +84,8 @@ public final class TestEntryGroups {
         groups.assertNext("S", asSet("Spring", "Scala"));
         groups.assertNoMore();
         
-        groups = new EntriesTester<>(new EntryGroups<>(indexByFirstLetter(values), HashSet::new, String::equalsIgnoreCase));
+        groups = new EntriesTester<>(
+            new EntryGroups<>(indexByFirstLetter(values), HashSet::new, String::equalsIgnoreCase));
         groups.assertNext("D", singleton("Dart"));
         groups.assertNext("j", asSet("Java", "JS", "jUnit"));
         groups.assertNext("S", asSet("Spring", "Scala"));
@@ -98,8 +99,7 @@ public final class TestEntryGroups {
     }
     
     private static final <K, G extends Collection<String>> EntryGroups<K, String, G> indexGroups(
-        Supplier<? extends G> collFactory, Function<String, ? extends K> mapper, String... values)
-    {
+        Supplier<? extends G> collFactory, Function<String, ? extends K> mapper, String... values) {
         return new EntryGroups<>(Entries.indexValueStream(Stream.of(values), mapper), collFactory);
     }
     

@@ -64,7 +64,7 @@ public abstract class TestDistinctEntries {
     @SuppressWarnings("rawtypes")
     private static Map<?, ?> createMap(Supplier<? extends Map> factory, Object... keyValues) {
         Map<Object, Object> map = factory.get();
-        for (int i = 0; i < keyValues.length;) {
+        for (int i = 0; i < keyValues.length; ) {
             Object key = keyValues[i++];
             Object value = keyValues[i++];
             map.put(key, value);
