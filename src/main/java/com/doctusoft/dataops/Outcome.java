@@ -1,5 +1,6 @@
 package com.doctusoft.dataops;
 
+import java.util.*;
 import java.util.function.*;
 
 import static com.doctusoft.java.Failsafe.checkState;
@@ -27,21 +28,38 @@ public final class Outcome<R, F> {
     public boolean hasResult() {
         return failure == null;
     }
-    
+
     public R getResult() {
         checkState(hasResult(), () -> "Unexpected failure: " + failure);
         return result;
     }
-    
+
+    public Optional<R> result() {
+        if (hasResult()) {
+            return Optional.ofNullable(result);
+        }
+        return Optional.empty();
+    }
+
+    public void then(Consumer<? super R> action) {
+        if (hasResult()) {
+            action.accept(result);
+        }
+    }
+
+    public <T extends Throwable> R orElseThrow(Function<? super F, ? extends T> exceptionSupplier) throws T {
+        return result().orElseThrow(() -> exceptionSupplier.apply(failure));
+    }
+
     public boolean isFailure() {
         return failure != null;
     }
-    
+
     public F getFailure() {
         checkState(isFailure(), () -> "Unexpected result: " + result);
         return failure;
     }
-    
+
     public Promise<R, F> toPromise() {
         Promise<R, F> promise = new Promise<>();
         promise.accept(this);
