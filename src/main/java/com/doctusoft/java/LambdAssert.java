@@ -17,21 +17,42 @@ public final class LambdAssert {
         }
     }
 
-    public static <T> void assertReturns(Supplier<T> actual, Predicate<T> expected) {
+    public static <T> void assertReturns(Supplier<T> actual, Predicate<? super T> expected) {
         T value = assertComputes(actual);
         if (!expected.test(value)) {
             throw new AssertionError("Unexpected value returned: " + value);
         }
     }
 
-    public static <T> void assertThrows(Supplier<T> actual, Predicate<Throwable> expectedThrown) {
+    public static void assertRuns(Runnable action) {
         try {
-            T value = actual.get();
+            action.run();
+        } catch (Exception e) {
+            throw new AssertionError("Unexpected exception thrown", e);
+        }
+    }
+
+    public static void assertThrows(Runnable action, Predicate<? super Exception> expectedException) {
+        try {
+            action.run();
+            throw new AssertionError("Completed without exception");
+        } catch (Exception e) {
+            assertException(e, expectedException);
+        }
+    }
+
+    public static void assertThrows(Supplier<?> actual, Predicate<? super Exception> expectedException) {
+        try {
+            Object value = actual.get();
             throw new AssertionError("Completed without exception and returned: " + value);
         } catch (Exception e) {
-            if (!expectedThrown.test(e)) {
-                throw new AssertionError("Not the expected exception was thrown", e);
-            }
+            assertException(e, expectedException);
+        }
+    }
+
+    private static void assertException(Exception actual, Predicate<? super Exception> expected) {
+        if (!expected.test(actual)) {
+            throw new AssertionError("Not the expected exception was thrown", actual);
         }
     }
 
