@@ -17,11 +17,12 @@ public final class LambdAssert {
         }
     }
 
-    public static <T> void assertReturns(Supplier<T> actual, Predicate<? super T> expected) {
+    public static <T> T assertReturns(Supplier<T> actual, Predicate<? super T> expected) {
         T value = assertComputes(actual);
         if (!expected.test(value)) {
             throw new AssertionError("Unexpected value returned: " + value);
         }
+        return value;
     }
 
     public static void assertRuns(Runnable action) {

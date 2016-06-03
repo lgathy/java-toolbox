@@ -1,5 +1,6 @@
 package com.doctusoft.java;
 
+import java.util.*;
 import java.util.function.*;
 
 public final class Failsafe {
@@ -48,6 +49,12 @@ public final class Failsafe {
         }
     }
     
+    public static void checkArgumentEquals(Object argument, Object expected) {
+        if (Objects.equals(argument, expected)) {
+            throw new IllegalArgumentException("Arguments are not equal: " + argument + ", " + expected);
+        }
+    }
+
     public static void checkState(boolean expression) {
         if (!expression) {
             throw new IllegalStateException();
