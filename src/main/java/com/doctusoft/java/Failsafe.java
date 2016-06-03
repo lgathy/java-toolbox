@@ -50,7 +50,7 @@ public final class Failsafe {
     }
     
     public static void checkArgumentEquals(Object argument, Object expected) {
-        if (Objects.equals(argument, expected)) {
+        if (!Objects.equals(argument, expected)) {
             throw new IllegalArgumentException("Arguments are not equal: " + argument + ", " + expected);
         }
     }
