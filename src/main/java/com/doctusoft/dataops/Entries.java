@@ -58,6 +58,10 @@ public interface Entries<K, V> {
         return indexValues(values, mapperFun);
     }
 
+    static <V> Entries<Integer, V> indexedArrayElements(V[] elements) {
+        return new EntriesForArray<>(elements);
+    }
+
     default void forEach(BiConsumer<K, V> action) {
         while (next(action)) {
             // nothing more to do here
