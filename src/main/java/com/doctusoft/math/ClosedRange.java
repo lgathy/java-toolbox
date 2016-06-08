@@ -4,6 +4,7 @@ import com.doctusoft.annotation.Beta;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.function.*;
 
 import static com.doctusoft.java.Failsafe.checkArgument;
 import static com.doctusoft.math.Interval.*;
@@ -29,6 +30,13 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     private ClosedRange(C lowerBound, C upperBound) {
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
+    }
+
+    public <T extends Comparable> ClosedRange<T> convert(Function<? super C, ? extends T> convertFun) {
+        requireNonNull(convertFun, "convertFun");
+        return create(
+            convertFun.apply(lowerBound),
+            convertFun.apply(upperBound));
     }
     
     public C getLowerBound() {
