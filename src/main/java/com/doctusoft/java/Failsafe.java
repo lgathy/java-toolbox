@@ -21,6 +21,10 @@ public final class Failsafe {
         return new RuntimeException("Cannot happen");
     }
     
+    public static RuntimeException cannotHappen(String message) {
+        return new RuntimeException("Cannot happen: " + message);
+    }
+
     public static RuntimeException cannotHappen(Throwable e) {
         return new RuntimeException("Cannot happen: " + e.getMessage(), e);
     }
@@ -31,6 +35,12 @@ public final class Failsafe {
         }
     }
     
+    public static void cannotHappen(boolean impossible, Supplier<String> messageSupplier) throws RuntimeException {
+        if (impossible) {
+            throw cannotHappen(messageSupplier.get());
+        }
+    }
+
     public static void checkArgument(boolean expression) {
         if (!expression) {
             throw new IllegalArgumentException();

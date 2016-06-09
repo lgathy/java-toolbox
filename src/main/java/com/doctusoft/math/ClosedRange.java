@@ -1,20 +1,22 @@
 package com.doctusoft.math;
 
 import com.doctusoft.annotation.Beta;
+import com.doctusoft.java.Failsafe;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.function.*;
 
+import static com.doctusoft.java.Failsafe.cannotHappen;
 import static com.doctusoft.java.Failsafe.checkArgument;
 import static com.doctusoft.math.Interval.*;
 import static com.doctusoft.math.Interval.monotonicIncreasingValues;
+import static com.doctusoft.math.Interval.strictlyMonotonicIncreasingValues;
 import static java.util.Objects.*;
 
 @Beta
 @SuppressWarnings("rawtypes")
 public final class ClosedRange<C extends Comparable> implements Interval<C> {
-    
+
     public static final <C extends Comparable> ClosedRange<C> create(C lowerBound, C upperBound) {
         requireNonNull(lowerBound, "lowerBound");
         requireNonNull(upperBound, "upperBound");
@@ -22,7 +24,12 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
             () -> "Invalid interval: " + lowerBound + " > " + upperBound);
         return new ClosedRange<>(lowerBound, upperBound);
     }
-    
+
+    public static final <C extends Comparable> ClosedRange<C> singleValue(C value) {
+        requireNonNull(value);
+        return new ClosedRange<C>(value, value);
+    }
+
     private final C lowerBound;
     
     private final C upperBound;
@@ -89,8 +96,35 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
         } else {
             return create(
                 (lowerCmp >= 0) ? lowerBound : other.lowerBound,
-                (upperCmp <= 0) ? upperBound : other.upperBound);
+                (upperCmp <= 0) ? upperBound : other.upperBound
+            );
         }
+    }
+
+    public ClosedRange<C> extendWithValue(C value) {
+        if (contains(value)) {
+            return this;
+        }
+        if (strictlyMonotonicIncreasingValues(value, lowerBound)) {
+            return withLowerBound(value);
+        }
+        cannotHappen(monotonicIncreasingValues(value, upperBound), () -> "extendWithValue(" + value + ") failed: " + toString());
+        return withUpperBound(value);
+    }
+
+    public ClosedRange<C> extendWithRange(ClosedRange<C> other) {
+        int lowerCmp = lowerBound.compareTo(other.lowerBound);
+        int upperCmp = upperBound.compareTo(other.upperBound);
+        if (lowerCmp <= 0 && upperCmp >= 0) {
+            return this;
+        }
+        if (lowerCmp >= 0 && upperCmp <= 0) {
+            return other;
+        }
+        return create(
+            (lowerCmp <= 0) ? lowerBound : other.lowerBound,
+            (upperCmp >= 0) ? upperBound : other.upperBound
+        );
     }
     
     public String toString() {
