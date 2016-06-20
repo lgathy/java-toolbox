@@ -33,11 +33,11 @@
     <distributionManagement>
         <repository>
             <id>doctusoft.releases</id>
-            <url>http://repo.doctusoft.com/nexus/content/repositories/releases</url>
+            <url>http://repo.doctusoft.com/nexus/content/repositories/oss</url>
         </repository>
         <snapshotRepository>
             <id>doctusoft.snapshots</id>
-            <url>http://repo.doctusoft.com/nexus/content/repositories/snapshots</url>
+            <url>http://repo.doctusoft.com/nexus/content/repositories/oss-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -61,14 +61,7 @@
             <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
-        <!--<dependency>-->
-        <!--<groupId>org.easymock</groupId>-->
-        <!--<artifactId>easymock</artifactId>-->
-        <!--<version>3.2</version>-->
-        <!--<scope>test</scope>-->
-        <!--</dependency>-->
     </dependencies>
-
 
     <build>
 
