@@ -17,18 +17,19 @@ public final class LookupTable<K, V> {
         ToIntFunction<? super V> valueOrdinalFun,
         ToIntFunction<? super K> keyOrdinalFun,
         ClosedRange<Integer> validRange) {
-        return new LookupTable<>(validRange, keyOrdinalFun, indexValues(values, v -> valueOrdinalFun.applyAsInt(v)));
+        return new LookupTable<>(validRange, Integer::intValue, indexValues(values, v -> valueOrdinalFun.applyAsInt(v)))
+            .changeKeys(keyOrdinalFun);
     }
 
     public static <K, V> LookupTable<K, V> fromMap(
         Map<K, V> map,
         ToIntFunction<? super K> keyOrdinalFun,
         ClosedRange<Integer> validRange) {
-        return new LookupTable<>(validRange, keyOrdinalFun, forMap(map).transformKeys(k -> keyOrdinalFun.applyAsInt(k)));
+        return new LookupTable<>(validRange, keyOrdinalFun, forMap(map));
     }
 
     public static <K, V> LookupTable<K, V> fromEntries(
-        Entries<Integer, V> entries,
+        Entries<K, V> entries,
         ToIntFunction<? super K> keyOrdinalFun,
         ClosedRange<Integer> validRange) {
         return new LookupTable<>(validRange, keyOrdinalFun, entries);
@@ -48,17 +49,16 @@ public final class LookupTable<K, V> {
     }
 
     private LookupTable(ClosedRange<Integer> validRange, ToIntFunction<? super K> keyOrdinalFun,
-        Entries<Integer, V> entries) {
+        Entries<K, V> entries) {
         this.validRange = requireNonNull(validRange, "validRange");
         this.keyOrdinalFun = requireNonNull(keyOrdinalFun, "keyOrdinalFun");
         int size = validRange.getUpperBound() + 1;
         checkArgument(size > validRange.getUpperBound(), "Integer overflow");
         this.table = new Object[size];
-        requireNonNull(entries, "entries").forEach(this::fill);
+        requireNonNull(entries, "entries").forEach((k, v) -> fill(keyOrdinalFun.applyAsInt(k), v));
     }
 
-    private void fill(Integer index, V value) {
-        requireNonNull(index, "index");
+    private void fill(int index, V value) {
         requireNonNull(value, () -> "Null value for key: #" + index);
         if (table[index] != null) {
             throw new IllegalArgumentException("Duplicate value for key: #" + index);
