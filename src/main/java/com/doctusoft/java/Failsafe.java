@@ -3,6 +3,8 @@ package com.doctusoft.java;
 import java.util.*;
 import java.util.function.*;
 
+import static java.util.Objects.requireNonNull;
+
 public final class Failsafe {
     
     private Failsafe() {
@@ -80,6 +82,23 @@ public final class Failsafe {
     public static void checkState(boolean expression, Supplier<String> messageSupplier) {
         if (!expression) {
             throw new IllegalStateException(messageSupplier.get());
+        }
+    }
+    
+    public static <T, U> U checkParse(T input, Function<? super T, ? extends U> parserFun) {
+        return checkParse(input, parserFun, () -> "Failed to parse input: " + String.valueOf(input));
+    }
+    
+    public static <T, U> U checkParse(T input, Function<? super T, ? extends U> parserFun, String inputName) {
+        return checkParse(input, parserFun, () -> "Failed to parse " + inputName + ": " + String.valueOf(input));
+    }
+    
+    public static <T, U> U checkParse(T input, Function<? super T, ? extends U> parserFun, Supplier<String> messageSupplier) {
+        requireNonNull(parserFun, "parserFun");
+        try {
+            return parserFun.apply(input);
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException(messageSupplier.get());
         }
     }
     
