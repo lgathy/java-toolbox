@@ -3,6 +3,8 @@ package com.doctusoft.dataops;
 import java.util.*;
 import java.util.function.*;
 
+import com.doctusoft.java.Failsafe;
+
 import static com.doctusoft.java.Failsafe.checkState;
 import static java.util.Objects.*;
 
@@ -52,6 +54,25 @@ public final class Promise<R, F> {
             resultConsumers.add(consumer);
         }
         return this;
+    }
+    
+    public <R2, F2> Promise<R2, F2> then(Function<R, R2> resultFunction, Function<F, F2> failureFunction) {
+        requireNonNull(resultFunction);
+        requireNonNull(failureFunction);
+        final Promise<R2, F2> resultPromise = new Promise<R2, F2>();
+        if (isFinished()) {
+            if (hasResult()) {
+                resultPromise.resolve(resultFunction.apply(result));
+            } else if (isFailed()) {
+                resultPromise.reject(failureFunction.apply(failure));
+            } else {
+                Failsafe.cannotHappen();
+            }
+        } else {
+            resultConsumers.add(result -> resultPromise.resolve(resultFunction.apply(result)));
+            failureConsumers.add(failure -> resultPromise.reject(failureFunction.apply(failure)));
+        }
+        return resultPromise;
     }
     
     public Promise<R, F> fail(Consumer<F> handler) {
@@ -128,5 +149,5 @@ public final class Promise<R, F> {
         
         public abstract boolean test(Promise promise);
     }
-
+    
 }
