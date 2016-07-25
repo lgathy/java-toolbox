@@ -1,8 +1,6 @@
 package com.doctusoft.math;
 
 import com.doctusoft.annotation.Beta;
-import com.doctusoft.java.Failsafe;
-
 import java.math.BigInteger;
 import java.util.function.*;
 
@@ -139,7 +137,7 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     public static long longSizeExact(ClosedRange<Long> longRange) {
         BigInteger length = BigInteger.valueOf(longRange.getUpperBound())
             .subtract(BigInteger.valueOf(longRange.getLowerBound()));
-        return length.subtract(BigInteger.ONE).longValueExact();
+        return length.add(BigInteger.ONE).longValueExact();
     }
 
 }
