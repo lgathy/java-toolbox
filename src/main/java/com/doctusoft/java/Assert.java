@@ -3,9 +3,9 @@ package com.doctusoft.java;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class LambdaAssert {
+public class Assert extends org.junit.Assert {
 
-    LambdaAssert() {
+    Assert() {
         throw Failsafe.staticClassInstantiated();
     }
 

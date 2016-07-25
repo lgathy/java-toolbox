@@ -2,7 +2,7 @@ package com.doctusoft.math;
 
 import org.junit.Assert;
 import org.junit.Test;
-import com.doctusoft.java.LambdaAssert;
+import com.doctusoft.java.LambdAssert;
 
 public class TestClosedRange {
     
@@ -22,7 +22,7 @@ public class TestClosedRange {
     }
     
     private void assertIntSizeExactArithmeticException(int lowerBound, int upperBound) {
-        LambdaAssert.assertThrows(
+        LambdAssert.assertThrows(
                 () -> ClosedRange.intSizeExact(ClosedRange.create(lowerBound, upperBound)),
                 e -> e instanceof ArithmeticException);
     }
@@ -43,7 +43,7 @@ public class TestClosedRange {
     }
     
     private void assertLongSizeExactArithmeticException(long lowerBound, long upperBound) {
-        LambdaAssert.assertThrows(
+        LambdAssert.assertThrows(
                 () -> ClosedRange.longSizeExact(ClosedRange.create(lowerBound, upperBound)),
                 e -> e instanceof ArithmeticException);
     }

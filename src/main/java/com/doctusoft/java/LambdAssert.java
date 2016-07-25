@@ -1,10 +1,10 @@
 package com.doctusoft.java;
 
 /**
- * @deprecated use {@link LambdaAssert}
+ * @deprecated use {@link com.doctusoft.java.Assert}
  */
 @Deprecated
-public final class LambdAssert extends LambdaAssert {
+public final class LambdAssert extends com.doctusoft.java.Assert {
     
     private LambdAssert() {
         throw Failsafe.staticClassInstantiated();
