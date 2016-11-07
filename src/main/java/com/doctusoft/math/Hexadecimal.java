@@ -3,11 +3,40 @@ package com.doctusoft.math;
 import com.doctusoft.annotation.Beta;
 import com.doctusoft.java.Failsafe;
 
+/**
+ * Provides specialized implementation for some frequent use-cases of working with hexadecimal interpretation of numbers. 
+ * In almost all cases there are more general implementations for these with better flexibility provided but due to that 
+ * they also come with larger overhead cost unnecessary in these common use-cases.
+ */
 @Beta
 public final class Hexadecimal {
     
     private Hexadecimal() {
         throw Failsafe.staticClassInstantiated();
+    }
+    
+    public static char getDigit(int index) {
+        return DIGITS[index];
+    }
+    
+    public static char getLastDigit(int value) {
+        return DIGITS[value & MASK];
+    }
+    
+    public static String printLast2Digits(int value) {
+        return printLast2DigitsInternal(value & BMASK);
+    }
+    
+    public static String printFixWidth2(int value) {
+        return printFixWidth2Internal(value & BMASK);
+    }
+    
+    private static String printLast2DigitsInternal(int value) {
+        return (value < BASE) ? STR[value] : printFixWidth2Internal(value);
+    }
+    
+    private static String printFixWidth2Internal(int value) {
+        return new String(new char[] { DIGITS[value >>> BITS], DIGITS[value & MASK] });
     }
     
     public static void appendFixWidth32bit(StringBuilder buf, int unsignedInt) {
@@ -44,34 +73,6 @@ public final class Hexadecimal {
         return buf.toString();
     }
     
-    public static char getDigit(int index) {
-        return DIGITS[index];
-    }
-    
-    public static char getLastDigit(int value) {
-        return DIGITS[value & MASK];
-    }
-    
-    public static String printLast2Digits(int value) {
-        return printLast2DigitsInternal(value & BMASK);
-    }
-    
-    public static String printFixWidth2(int value) {
-        return printFixWidth2Internal(value & BMASK);
-    }
-    
-    public static final char[] createDigits() {
-        return new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-    }
-    
-    private static String printLast2DigitsInternal(int value) {
-        return (value < BASE) ? STR[value] : printFixWidth2Internal(value);
-    }
-    
-    private static String printFixWidth2Internal(int value) {
-        return new String(new char[] { DIGITS[value >>> BITS], DIGITS[value & MASK] });
-    }
-    
     private static final int BITS = 4;
     
     private static final int BASE = 16;
@@ -82,9 +83,8 @@ public final class Hexadecimal {
     
     private static final long LMASK = MASK;
     
-    private static final char[] DIGITS = createDigits();
+    private static final char[] DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
     
-    private static final String[] STR = {
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" };
-
+    private static final String[] STR = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" };
+    
 }
