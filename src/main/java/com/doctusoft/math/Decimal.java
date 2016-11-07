@@ -5,6 +5,11 @@ import com.doctusoft.annotation.Beta;
 import static com.doctusoft.java.Failsafe.staticClassInstantiated;
 import static java.lang.Math.abs;
 
+/**
+ * Provides specialized implementation for some frequent use-cases of working with decimal interpretation of numbers. 
+ * In almost all cases there are more general implementations for these with better flexibility provided but due to that 
+ * they also come with larger overhead cost unnecessary in these common use-cases.
+ */
 @Beta
 public final class Decimal {
     
@@ -38,10 +43,6 @@ public final class Decimal {
     
     public static String printFixWidth4(int value) {
         return printFixWidth4Internal(abs(value % BASE_POW_4));
-    }
-    
-    public static final char[] createDigits() {
-        return new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
     }
     
     private static String printLast2DigitsInternal(int value) {
@@ -80,7 +81,7 @@ public final class Decimal {
     
     private static final String[] STR = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
     
-    private static final char[] DIGITS = createDigits();
+    private static final char[] DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
     
     private static final int BASE = 10;
     
