@@ -53,6 +53,46 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
         return new ClosedRange<C>(value, value);
     }
     
+    /**
+     * Parses the {@code input} {@link String} into a {@link ClosedRange} according to its {@link #toString()}
+     * representation or throws {@link IllegalArgumentException} if its not possible or the interval is not a valid.
+     * The provided parser function is used to parse the individual bounds, any exceptions thrown by it will pass
+     * through to the caller of this method unchanged.
+     *
+     * @param input     the input string to parse
+     * @param parserFun function to parse the individual bounds
+     * @return the parsed valid closed range instance
+     */
+    public static final <C extends Comparable> ClosedRange<C> parse(String input, Function<String, C> parserFun) {
+        requireNonNull(parserFun);
+        parse:
+        {
+            if (input.isEmpty()) break parse;
+            if (input.charAt(0) != OPEN_SYMBOL) break parse;
+            int lastCharAt = input.length() - 1;
+            if (input.charAt(lastCharAt) != CLOSE_SYMBOL) break parse;
+            String[] parts = SEPARATOR.split(input.substring(1, lastCharAt));
+            if (parts.length != 2) break parse;
+            return ClosedRange.create(parserFun.apply(parts[0]), parserFun.apply(parts[1]));
+        }
+        throw new IllegalArgumentException("Invalid ClosedRange: " + input);
+        
+    }
+    
+    /**
+     * Equivalent to {@code parse(input, Function.identity());}. Please note, that validation of the parsed lower and
+     * upper bound values are checked by natural {@link String} ordering, so if you need to parse numbers, you should
+     * not do it via: {@code ClosedRange.parse(input).convert(Integer::valueOf)} because it could fail on the first
+     * parse even if the input contains a valid closed range (e.G. [4; 17]).
+     *
+     * @param input the input string to parse
+     * @return the parsed valid closed range of {@link String} bounds
+     * @see #parse(String, Function)
+     */
+    public static final ClosedRange<String> parse(String input) {
+        return parse(input, Function.identity());
+    }
+    
     private final C lowerBound;
     
     private final C upperBound;
@@ -206,24 +246,45 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
      * for providing its own {@link String} representation with its {@code toString()} method.
      */
     public String toString() {
-        return "[" + lowerBound + "; " + upperBound + "]";
+        return new StringBuilder().append(OPEN_SYMBOL).append(lowerBound + SEPARATOR + upperBound).append(CLOSE_SYMBOL).toString();
     }
+    
+    private static final char OPEN_SYMBOL = '[';
+    
+    private static final String SEPARATOR = "; ";
+    
+    private static final char CLOSE_SYMBOL = ']';
     
     public static final BigDecimal decimalLengthOf(ClosedRange<BigDecimal> decimalRange) {
         return decimalRange.getUpperBound()
             .subtract(decimalRange.getLowerBound());
     }
     
+    /**
+     * Computes the discrete element count of the provided {@code ClosedRange<BigInteger>} interval.
+     */
     public static final BigInteger countBigints(ClosedRange<BigInteger> bigintRange) {
         return bigintRange.getUpperBound()
             .subtract(bigintRange.getLowerBound())
             .add(BigInteger.ONE);
     }
     
+    /**
+     * Computes the discrete element count of the provided {@code ClosedRange<Long>} interval. The return value is a 
+     * {@link BigInteger}, because the element count for valid interval could be larger than {@link Long#MAX_VALUE}, 
+     * however the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
+     * where needed.
+     */
     public static final BigInteger countLongs(ClosedRange<Long> longRange) {
         return countBigints(longRange.convert(BigInteger::valueOf));
     }
     
+    /**
+     * Computes the discrete element count of the provided {@code ClosedRange<Integer>} interval. The return value is a 
+     * {@link BigInteger}, because the element count for valid interval could be larger than {@link Integer#MAX_VALUE}, 
+     * however the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
+     * where needed. This is also the reason to choose {@link BigInteger} as a return type here over {@link Long}.
+     */
     public static final BigInteger countInts(ClosedRange<Integer> intRange) {
         long size = intRange.getUpperBound().longValue() - intRange.getLowerBound().longValue() + 1L;
         return BigInteger.valueOf(size);
