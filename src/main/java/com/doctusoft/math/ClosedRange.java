@@ -22,8 +22,8 @@ import static java.util.Objects.*;
 public final class ClosedRange<C extends Comparable> implements Interval<C> {
     
     /**
-     * Checks if the given parameters could form a valid {@link ClosedRange}. This method tolerates {@code null} values
-     * passed and will return {@code false} if any given parameter is {@null}.
+     * Checks if the given parameters could form a valid {@link ClosedRange}. This method tolerates {@code null} input
+     * values passed and will return {@code false} if any given parameter is {@null}.
      */
     public static final <C extends Comparable> boolean isValid(C lowerBound, C upperBound) {
         if (lowerBound == null || upperBound == null) return false;
@@ -34,7 +34,7 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
      * @param lowerBound the lower bound of the closed interval to create
      * @param upperBound the upper bound of the closed interval to create
      * @param <C>        the type argument of the interval's domain
-     * @return an interval of {@code [lowerBound; upperBound)}
+     * @return an interval of {@code [lowerBound; upperBound]}
      * @throws IllegalArgumentException if {@code upperBound < lowerBound}
      */
     public static final <C extends Comparable> ClosedRange<C> create(C lowerBound, C upperBound) {
@@ -103,7 +103,7 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     }
     
     /**
-     * Creates a new interval based on this intervals bounds transformed by the provided function.
+     * Creates a new {@link ClosedRange} interval based on this intervals bounds transformed by the provided function.
      * <p><b>Important to note</b> that the converter function should ensure that
      * {@code convertFun(lowerBound) <= convertFun(upperBound)}, otherwise the converted interval would be invalid</p>
      * <p>Naming of the methods differs from the familiar {@code map} methods found in {@link java.util.Optional} and
@@ -166,6 +166,8 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     
     /**
      * Creates a new {@link ClosedRange} with its lower bound replace with the given parameter.
+     * 
+     * @throws IllegalArgumentException if the resulting interval would be invalid
      */
     public ClosedRange<C> withLowerBound(C lowerBound) {
         return ClosedRange.create(lowerBound, upperBound);
@@ -173,6 +175,8 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     
     /**
      * Creates a new {@link ClosedRange} with its upper bound replace with the given parameter.
+     * 
+     * @throws IllegalArgumentException if the resulting interval would be invalid
      */
     public ClosedRange<C> withUpperBound(C upperBound) {
         return ClosedRange.create(lowerBound, upperBound);
@@ -239,6 +243,21 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
         );
     }
     
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClosedRange that = (ClosedRange) o;
+        if (lowerBound.compareTo(that.lowerBound) != 0) return false;
+        return upperBound.compareTo(that.upperBound) == 0;
+    
+    }
+    
+    public int hashCode() {
+        int result = lowerBound.hashCode();
+        result = 31 * result + upperBound.hashCode();
+        return result;
+    }
+    
     /**
      * Important to note that the {@link ClosedRange#toString()} representation follows the mathematical interval
      * notation of {@code [lowerBound; upperBound]}. Using the "; " as separator is important since some number formats
@@ -255,6 +274,7 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     
     private static final char CLOSE_SYMBOL = ']';
     
+    @Beta
     public static final BigDecimal decimalLengthOf(ClosedRange<BigDecimal> decimalRange) {
         return decimalRange.getUpperBound()
             .subtract(decimalRange.getLowerBound());
