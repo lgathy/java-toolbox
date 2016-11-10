@@ -56,15 +56,25 @@ public final class RepeatedElementList<E> extends AbstractList<E> {
     public boolean isEmpty() { return false; }
     
     public E get(int index) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index=" + index + ", size=" + size);
-        }
+        checkBounds(index);
         return element;
+    }
+    
+    private void checkBounds(int index) {
+        if (index < 0 || index >= size) {
+            throw indexOutOfBounds(index);
+        }
+    }
+    
+    private IndexOutOfBoundsException indexOutOfBounds(int index) {
+        return new IndexOutOfBoundsException("index=" + index + ", size=" + size);
     }
     
     public int size() { return size; }
     
-    @Override public void sort(Comparator<? super E> c) {}
+    @Override public boolean contains(Object obj) {
+        return Objects.equals(obj, element);
+    }
     
     @Override public void forEach(Consumer<? super E> action) {
         for (int i = 0; i < size; ++i) {
@@ -72,9 +82,45 @@ public final class RepeatedElementList<E> extends AbstractList<E> {
         }
     }
     
-    @Override public boolean contains(Object obj) {
-        return Objects.equals(obj, element);
+    @Override public Iterator<E> iterator() { return listIterator(0); }
+    
+    @Override public ListIterator<E> listIterator(int index) {
+        checkBounds(index);
+        
+        class Itr implements ListIterator<E> {
+            
+            private int pos = index;
+            
+            public boolean hasNext() { return pos < size; }
+            
+            public boolean hasPrevious() { return pos > 0; }
+            
+            public E next() {
+                if (pos >= size) throw indexOutOfBounds(pos);
+                ++pos;
+                return element;
+            }
+            
+            public E previous() {
+                if (pos <= 0) throw indexOutOfBounds(pos);
+                --pos;
+                return element;
+            }
+            
+            public int nextIndex() { return pos; }
+            
+            public int previousIndex() { return pos - 1; }
+            
+            public void remove() { throw new UnsupportedOperationException(); }
+            
+            public void set(E e) { throw new UnsupportedOperationException(); }
+            
+            public void add(E e) { throw new UnsupportedOperationException(); }
+        }
+        return new Itr();
     }
+    
+    @Override public void sort(Comparator<? super E> c) {}
     
     @Override public boolean removeIf(Predicate<? super E> filter) { throw new UnsupportedOperationException(); }
     
