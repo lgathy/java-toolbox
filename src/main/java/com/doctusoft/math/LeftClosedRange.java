@@ -23,7 +23,7 @@ import static java.util.Objects.*;
  */
 @Beta
 @SuppressWarnings("rawtypes")
-public final class LeftClosedRange<C extends Comparable> implements Interval<C> {
+public class LeftClosedRange<C extends Comparable> implements Interval<C> {
     
     /**
      * Checks if the given parameters could form a valid {@link LeftClosedRange}. This method tolerates {@code null} input values
@@ -42,10 +42,6 @@ public final class LeftClosedRange<C extends Comparable> implements Interval<C> 
      * @throws IllegalArgumentException if {@code upperBound <= lowerBound}
      */
     public static final <C extends Comparable> LeftClosedRange<C> create(C lowerBound, C upperBound) {
-        requireNonNull(lowerBound, "lowerBound");
-        requireNonNull(upperBound, "upperBound");
-        checkArgument(Interval.strictlyMonotonicIncreasingValues(lowerBound, upperBound),
-            () -> "Invalid LeftClosedRange: " + lowerBound + " > " + upperBound);
         return new LeftClosedRange<>(lowerBound, upperBound);
     }
     
@@ -69,7 +65,7 @@ public final class LeftClosedRange<C extends Comparable> implements Interval<C> 
             if (input.charAt(lastCharAt) != CLOSE_SYMBOL) break parse;
             String[] parts = SEPARATOR.split(input.substring(1, lastCharAt));
             if (parts.length != 2) break parse;
-            return LeftClosedRange.create(parserFun.apply(parts[0]), parserFun.apply(parts[1]));
+            return new LeftClosedRange<>(parserFun.apply(parts[0]), parserFun.apply(parts[1]));
         }
         throw new IllegalArgumentException("Invalid LeftClosedRange: " + input);
         
@@ -93,7 +89,11 @@ public final class LeftClosedRange<C extends Comparable> implements Interval<C> 
     
     private final C upperBound;
     
-    private LeftClosedRange(C lowerBound, C upperBound) {
+    protected LeftClosedRange(C lowerBound, C upperBound) {
+        requireNonNull(lowerBound, "lowerBound");
+        requireNonNull(upperBound, "upperBound");
+        checkArgument(Interval.strictlyMonotonicIncreasingValues(lowerBound, upperBound),
+            () -> "Invalid LeftClosedRange: " + lowerBound + " > " + upperBound);
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
     }

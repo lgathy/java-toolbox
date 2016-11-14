@@ -20,7 +20,7 @@ import static java.util.Objects.*;
  */
 @Beta
 @SuppressWarnings("rawtypes")
-public final class ClosedRange<C extends Comparable> implements Interval<C> {
+public class ClosedRange<C extends Comparable> implements Interval<C> {
     
     /**
      * Checks if the given parameters could form a valid {@link ClosedRange}. This method tolerates {@code null} input
@@ -39,10 +39,6 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
      * @throws IllegalArgumentException if {@code upperBound < lowerBound}
      */
     public static final <C extends Comparable> ClosedRange<C> create(C lowerBound, C upperBound) {
-        requireNonNull(lowerBound, "lowerBound");
-        requireNonNull(upperBound, "upperBound");
-        checkArgument(Interval.monotonicIncreasingValues(lowerBound, upperBound),
-            () -> "Invalid ClosedRange: " + lowerBound + " > " + upperBound);
         return new ClosedRange<>(lowerBound, upperBound);
     }
     
@@ -51,7 +47,7 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
      */
     public static final <C extends Comparable> ClosedRange<C> singleValue(C value) {
         requireNonNull(value);
-        return new ClosedRange<C>(value, value);
+        return createUnchecked(value, value);
     }
     
     /**
@@ -74,7 +70,7 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
             if (input.charAt(lastCharAt) != CLOSE_SYMBOL) break parse;
             String[] parts = SEPARATOR.split(input.substring(1, lastCharAt));
             if (parts.length != 2) break parse;
-            return ClosedRange.create(parserFun.apply(parts[0]), parserFun.apply(parts[1]));
+            return new ClosedRange<>(parserFun.apply(parts[0]), parserFun.apply(parts[1]));
         }
         throw new IllegalArgumentException("Invalid ClosedRange: " + input);
         
@@ -98,9 +94,22 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     
     private final C upperBound;
     
-    private ClosedRange(C lowerBound, C upperBound) {
+    protected ClosedRange(C lowerBound, C upperBound) {
+        requireNonNull(lowerBound, "lowerBound");
+        requireNonNull(upperBound, "upperBound");
+        checkArgument(Interval.monotonicIncreasingValues(lowerBound, upperBound),
+            () -> "Invalid ClosedRange: " + lowerBound + " > " + upperBound);
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
+    }
+    
+    private ClosedRange(C lowerBound, C upperBound, Object unchecked) {
+        this.lowerBound = lowerBound;
+        this.upperBound = upperBound;
+    }
+    
+    private static final <C extends Comparable> ClosedRange<C> createUnchecked(C lowerBound, C upperBound) {
+        return new ClosedRange<>(lowerBound, upperBound, null);
     }
     
     /**
@@ -167,7 +176,7 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     
     /**
      * Creates a new {@link ClosedRange} with its lower bound replace with the given parameter.
-     * 
+     *
      * @throws IllegalArgumentException if the resulting interval would be invalid
      */
     public ClosedRange<C> withLowerBound(C lowerBound) {
@@ -176,7 +185,7 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     
     /**
      * Creates a new {@link ClosedRange} with its upper bound replace with the given parameter.
-     * 
+     *
      * @throws IllegalArgumentException if the resulting interval would be invalid
      */
     public ClosedRange<C> withUpperBound(C upperBound) {
@@ -250,7 +259,7 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
         ClosedRange that = (ClosedRange) o;
         if (lowerBound.compareTo(that.lowerBound) != 0) return false;
         return upperBound.compareTo(that.upperBound) == 0;
-    
+        
     }
     
     public int hashCode() {
@@ -291,8 +300,8 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     }
     
     /**
-     * Computes the discrete element count of the provided {@code ClosedRange<Long>} interval. The return value is a 
-     * {@link BigInteger}, because the element count for valid interval could be larger than {@link Long#MAX_VALUE}, 
+     * Computes the discrete element count of the provided {@code ClosedRange<Long>} interval. The return value is a
+     * {@link BigInteger}, because the element count for valid interval could be larger than {@link Long#MAX_VALUE},
      * however the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
      * where needed.
      */
@@ -301,8 +310,8 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
     }
     
     /**
-     * Computes the discrete element count of the provided {@code ClosedRange<Integer>} interval. The return value is a 
-     * {@link BigInteger}, because the element count for valid interval could be larger than {@link Integer#MAX_VALUE}, 
+     * Computes the discrete element count of the provided {@code ClosedRange<Integer>} interval. The return value is a
+     * {@link BigInteger}, because the element count for valid interval could be larger than {@link Integer#MAX_VALUE},
      * however the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
      * where needed. This is also the reason to choose {@link BigInteger} as a return type here over {@link Long}.
      */
@@ -324,7 +333,8 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
         public Iterator<Integer> iterator() {
             class Itr implements Iterator<Integer> {
                 
-                private Integer nextValue = range.getLowerBound();;
+                private Integer nextValue = range.getLowerBound();
+                ;
                 
                 public boolean hasNext() {
                     return range.contains(nextValue);
@@ -374,7 +384,8 @@ public final class ClosedRange<C extends Comparable> implements Interval<C> {
         public Iterator<Long> iterator() {
             class Itr implements Iterator<Long> {
                 
-                private Long nextValue = range.getLowerBound();;
+                private Long nextValue = range.getLowerBound();
+                ;
                 
                 public boolean hasNext() {
                     return range.contains(nextValue);
