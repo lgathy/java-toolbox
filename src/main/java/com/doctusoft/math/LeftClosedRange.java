@@ -4,6 +4,7 @@ import com.doctusoft.annotation.Beta;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.*;
 import java.util.function.*;
 
 import static com.doctusoft.java.Failsafe.checkArgument;
@@ -285,6 +286,106 @@ public final class LeftClosedRange<C extends Comparable> implements Interval<C> 
     public static final BigInteger countInts(LeftClosedRange<Integer> intRange) {
         long size = intRange.getUpperBound().longValue() - intRange.getLowerBound().longValue();
         return BigInteger.valueOf(size);
+    }
+    
+    public static class IntElementsSet extends AbstractSet<Integer> {
+        
+        private final LeftClosedRange<Integer> range;
+        private final int size;
+        
+        public IntElementsSet(LeftClosedRange<Integer> range) {
+            this.range = range;
+            this.size = LeftClosedRange.countInts(range).intValueExact();
+        }
+        
+        public Iterator<Integer> iterator() {
+            class Itr implements Iterator<Integer> {
+                
+                private Integer nextValue = range.getLowerBound();;
+                
+                public boolean hasNext() {
+                    return range.contains(nextValue);
+                }
+                
+                public Integer next() {
+                    if (!hasNext()) {
+                        throw new NoSuchElementException();
+                    }
+                    Integer valueToReturn = nextValue;
+                    nextValue = nextValue + 1;
+                    return valueToReturn;
+                }
+            }
+            return new Itr();
+        }
+        
+        public int size() { return size; }
+        
+        public boolean contains(Object o) {
+            if (!(o instanceof Integer)) {
+                return false;
+            }
+            return range.contains((Integer) o);
+        }
+        
+        public boolean remove(Object o) { throw new UnsupportedOperationException(); }
+        
+        public boolean removeIf(Predicate<? super Integer> filter) { throw new UnsupportedOperationException(); }
+        
+        public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+        
+        public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+        
+    }
+    
+    public static class LongElementsSet extends AbstractSet<Long> {
+        
+        private final LeftClosedRange<Long> range;
+        private final int size;
+        
+        public LongElementsSet(LeftClosedRange<Long> range) {
+            this.range = range;
+            this.size = LeftClosedRange.countLongs(range).intValueExact();
+        }
+        
+        public Iterator<Long> iterator() {
+            class Itr implements Iterator<Long> {
+                
+                private Long nextValue = range.getLowerBound();;
+                
+                public boolean hasNext() {
+                    return range.contains(nextValue);
+                }
+                
+                public Long next() {
+                    if (!hasNext()) {
+                        throw new NoSuchElementException();
+                    }
+                    Long valueToReturn = nextValue;
+                    nextValue = nextValue + 1;
+                    return valueToReturn;
+                }
+            }
+            return new Itr();
+        }
+        
+        public int size() { return size; }
+        
+        public boolean contains(Object o) {
+            if (!(o instanceof Long)) {
+                return false;
+            }
+            return range.contains((Long) o);
+        }
+        
+        public boolean remove(Object o) { throw new UnsupportedOperationException(); }
+        
+        public boolean removeIf(Predicate<? super Long> filter) { throw new UnsupportedOperationException(); }
+        
+        public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+        
+        public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+        
     }
     
 }
