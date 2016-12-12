@@ -25,6 +25,7 @@ public class TestExponentialIntDelays {
         assertFirstDelays(intsFrom(3).build(), 3, 6, 12, 24, 48, 96);
         assertThrows(() -> intsFrom(0), AnException.of(IllegalArgumentException.class));
         assertThrows(() -> intsFrom(-1), AnException.of(IllegalArgumentException.class));
+        assertThrows(() -> intsFrom(Integer.MIN_VALUE), AnException.of(IllegalArgumentException.class));
         int randomNegative = -1 * new Random().nextInt(Integer.MAX_VALUE);
         assertThrows(() -> intsFrom(randomNegative), AnException.of(IllegalArgumentException.class));
     }

@@ -105,7 +105,7 @@ public class Retry<T> implements Callable<T>, Runnable {
                 throw e;
             } catch (Exception e) {
                 log.log(Level.WARNING, e, () -> retryCount + ". attempt failed");
-                if (!delays.tryAdvance((LongConsumer) this::delay)) {
+                if (!delays.tryAdvance((LongConsumer) this::delay) || Thread.currentThread().isInterrupted()) {
                     log.log(Level.SEVERE, "Failed permanently: no more retries");
                     if (e instanceof RuntimeException) {
                         throw (RuntimeException) e;
@@ -122,6 +122,7 @@ public class Retry<T> implements Callable<T>, Runnable {
             Thread.sleep(timeToWait);
         } catch (InterruptedException ie) {
             log.log(Level.FINE, "Interrupted", ie);
+            Thread.currentThread().interrupt();
         }
     }
     

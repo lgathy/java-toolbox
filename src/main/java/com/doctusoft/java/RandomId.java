@@ -24,6 +24,10 @@ import java.util.concurrent.*;
  */
 public final class RandomId {
     
+    private static final PrecisionClock CLOCK = new PrecisionClock();
+    
+    private static final Base64.Encoder CODER = Base64.getUrlEncoder().withoutPadding();
+    
     private RandomId() { throw Failsafe.staticClassInstantiated(); }
     
     /**
@@ -86,9 +90,5 @@ public final class RandomId {
         ;
         return CODER.encodeToString(buf.array());
     }
-    
-    private static final PrecisionClock CLOCK = new PrecisionClock();
-    
-    private static final Base64.Encoder CODER = Base64.getUrlEncoder().withoutPadding();
     
 }

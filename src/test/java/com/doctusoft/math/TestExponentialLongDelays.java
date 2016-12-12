@@ -28,6 +28,7 @@ public class TestExponentialLongDelays {
         assertFirstDelays(longsFrom(3).build(), 3, 6, 12, 24, 48, 96);
         assertThrows(() -> longsFrom(0), AnException.of(IllegalArgumentException.class));
         assertThrows(() -> longsFrom(-1), AnException.of(IllegalArgumentException.class));
+        assertThrows(() -> longsFrom(Long.MIN_VALUE), AnException.of(IllegalArgumentException.class));
         long randomNegative = new Random().longs(Long.MIN_VALUE, 0L).findFirst().getAsLong();
         assertThrows(() -> longsFrom(randomNegative), AnException.of(IllegalArgumentException.class));
     }
