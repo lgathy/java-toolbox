@@ -7,60 +7,55 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.function.*;
 
-import static com.doctusoft.java.Failsafe.cannotHappen;
 import static com.doctusoft.java.Failsafe.checkArgument;
 import static java.util.Objects.*;
 
 /**
- * Specialized {@link Interval} implementations for closed intervals, a range that contains all values greater than or
- * equal to its {@code lowerBound} and less than or equal to its {@code upperBound}. {@link ClosedRange} instances are
- * <b>immutable</b>, thus thread-safe as well.
+ * Specialized {@link Interval} implementations for left-closed right-open intervals, a range that contains all values
+ * greater than or equal to its {@code lowerBound} and less than its {@code upperBound}.
+ * <p><b>Important to note</b> that although the interval is open from the right side, it still has to have an existing
+ * {@code upperBound} value, it cannot represent an infinite upper bound. Moreover, it cannot represent an empty
+ * interval, e.G. {@code [x; x)}, because it could be ambiguous in several cases, thus {@code lowerBound < upperBound}
+ * always stands for a valid {@link LeftClosedRange} instance.</p>
+ * <p>{@link LeftClosedRange} instances are <b>immutable</b>, thus thread-safe as well.</p>
  *
  * @param <C> the type argument of the interval's domain
  */
 @Beta
 @SuppressWarnings("rawtypes")
-public class ClosedRange<C extends Comparable> implements Interval<C> {
+public class LeftClosedRange<C extends Comparable> implements Interval<C> {
     
     /**
-     * Checks if the given parameters could form a valid {@link ClosedRange}. This method tolerates {@code null} input
-     * values passed and will return {@code false} if any given parameter is {@null}.
+     * Checks if the given parameters could form a valid {@link LeftClosedRange}. This method tolerates {@code null} input values
+     * passed and will return {@code false} if any given parameter is {@null}.
      */
     public static final <C extends Comparable> boolean isValid(C lowerBound, C upperBound) {
         if (lowerBound == null || upperBound == null) return false;
-        return Interval.monotonicIncreasingValues(lowerBound, upperBound);
+        return Interval.strictlyMonotonicIncreasingValues(lowerBound, upperBound);
     }
     
     /**
-     * @param lowerBound the lower bound of the closed interval to create
-     * @param upperBound the upper bound of the closed interval to create
+     * @param lowerBound the lower bound of the left-closed interval to create
+     * @param upperBound the upper bound of the left-closed interval to create
      * @param <C>        the type argument of the interval's domain
-     * @return an interval of {@code [lowerBound; upperBound]}
-     * @throws IllegalArgumentException if {@code upperBound < lowerBound}
+     * @return an interval of {@code [lowerBound; upperBound)}
+     * @throws IllegalArgumentException if {@code upperBound <= lowerBound}
      */
-    public static final <C extends Comparable> ClosedRange<C> create(C lowerBound, C upperBound) {
-        return new ClosedRange<>(lowerBound, upperBound);
+    public static final <C extends Comparable> LeftClosedRange<C> create(C lowerBound, C upperBound) {
+        return new LeftClosedRange<>(lowerBound, upperBound);
     }
     
     /**
-     * @return the interval of {@code [value; value]}
-     */
-    public static final <C extends Comparable> ClosedRange<C> singleValue(C value) {
-        requireNonNull(value);
-        return createUnchecked(value, value);
-    }
-    
-    /**
-     * Parses the {@code input} {@link String} into a {@link ClosedRange} according to its {@link #toString()}
+     * Parses the {@code input} {@link String} into a {@link LeftClosedRange} according to its {@link #toString()}
      * representation or throws {@link IllegalArgumentException} if its not possible or the interval is not a valid.
      * The provided parser function is used to parse the individual bounds, any exceptions thrown by it will pass
      * through to the caller of this method unchanged.
      *
      * @param input     the input string to parse
      * @param parserFun function to parse the individual bounds
-     * @return the parsed valid closed range instance
+     * @return the parsed valid left-closed range instance
      */
-    public static final <C extends Comparable> ClosedRange<C> parse(String input, Function<String, C> parserFun) {
+    public static final <C extends Comparable> LeftClosedRange<C> parse(String input, Function<String, C> parserFun) {
         requireNonNull(parserFun);
         parse:
         {
@@ -70,23 +65,23 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
             if (input.charAt(lastCharAt) != CLOSE_SYMBOL) break parse;
             String[] parts = SEPARATOR.split(input.substring(1, lastCharAt));
             if (parts.length != 2) break parse;
-            return new ClosedRange<>(parserFun.apply(parts[0]), parserFun.apply(parts[1]));
+            return new LeftClosedRange<>(parserFun.apply(parts[0]), parserFun.apply(parts[1]));
         }
-        throw new IllegalArgumentException("Invalid ClosedRange: " + input);
+        throw new IllegalArgumentException("Invalid LeftClosedRange: " + input);
         
     }
     
     /**
      * Equivalent to {@code parse(input, Function.identity());}. Please note, that validation of the parsed lower and
      * upper bound values are checked by natural {@link String} ordering, so if you need to parse numbers, you should
-     * not do it via: {@code ClosedRange.parse(input).convert(Integer::valueOf)} because it could fail on the first
-     * parse even if the input contains a valid closed range (e.G. [4; 17]).
+     * not do it via: {@code LeftClosedRange.parse(input).convert(Integer::valueOf)} because it could fail on the first
+     * parse even if the input contains a valid closed range (e.G. [4; 17)).
      *
      * @param input the input string to parse
-     * @return the parsed valid closed range of {@link String} bounds
+     * @return the parsed valid left-closed range of {@link String} bounds
      * @see #parse(String, Function)
      */
-    public static final ClosedRange<String> parse(String input) {
+    public static final LeftClosedRange<String> parse(String input) {
         return parse(input, Function.identity());
     }
     
@@ -94,33 +89,24 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
     
     private final C upperBound;
     
-    protected ClosedRange(C lowerBound, C upperBound) {
+    protected LeftClosedRange(C lowerBound, C upperBound) {
         requireNonNull(lowerBound, "lowerBound");
         requireNonNull(upperBound, "upperBound");
-        checkArgument(Interval.monotonicIncreasingValues(lowerBound, upperBound),
-            () -> "Invalid ClosedRange: " + lowerBound + " > " + upperBound);
+        checkArgument(Interval.strictlyMonotonicIncreasingValues(lowerBound, upperBound),
+            () -> "Invalid LeftClosedRange: " + lowerBound + " > " + upperBound);
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
-    }
-    
-    private ClosedRange(C lowerBound, C upperBound, Object unchecked) {
-        this.lowerBound = lowerBound;
-        this.upperBound = upperBound;
-    }
-    
-    private static final <C extends Comparable> ClosedRange<C> createUnchecked(C lowerBound, C upperBound) {
-        return new ClosedRange<>(lowerBound, upperBound, null);
     }
     
     /**
-     * Creates a new {@link ClosedRange} interval based on this intervals bounds transformed by the provided function.
+     * Creates a new {@link LeftClosedRange} interval based on this intervals bounds transformed by the provided function.
      * <p><b>Important to note</b> that the converter function should ensure that
-     * {@code convertFun(lowerBound) <= convertFun(upperBound)}, otherwise the converted interval would be invalid</p>
+     * {@code convertFun(lowerBound) < convertFun(upperBound)}, otherwise the converted interval would be invalid</p>
      * <p>Naming of the methods differs from the familiar {@code map} methods found in {@link java.util.Optional} and
-     * {@link java.util.stream.Stream} for a reason: the returned {@link ClosedRange} will always be an eagerly
-     * evaluated instance to ensure that only a valid {@link ClosedRange} instance can be returned</p>
+     * {@link java.util.stream.Stream} for a reason: the returned {@link LeftClosedRange} will always be an eagerly
+     * evaluated instance to ensure that only a valid {@link LeftClosedRange} instance can be returned</p>
      */
-    public <T extends Comparable> ClosedRange<T> convert(Function<? super C, ? extends T> convertFun) {
+    public <T extends Comparable> LeftClosedRange<T> convert(Function<? super C, ? extends T> convertFun) {
         requireNonNull(convertFun, "convertFun");
         return create(
             convertFun.apply(lowerBound),
@@ -128,14 +114,14 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
     }
     
     /**
-     * @return the lower bound of the interval (cannot be null)
+     * @return the lower bound (inclusive) of the interval (cannot be null)
      */
     public C getLowerBound() {
         return lowerBound;
     }
     
     /**
-     * @return the upper bound of the interval (cannot be null)
+     * @return the upper bound (exclusive) of the interval (cannot be null)
      */
     public C getUpperBound() {
         return upperBound;
@@ -146,21 +132,22 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
     }
     
     public boolean contains(C value) {
-        return Interval.monotonicIncreasingValues(lowerBound, requireNonNull(value), upperBound);
+        return Interval.monotonicIncreasingValues(lowerBound, requireNonNull(value))
+            && Interval.strictlyMonotonicIncreasingValues(value, upperBound);
     }
     
     /**
      * @return {@code true} if the interval has at least one common contained element with the {@code other} interval
      */
-    public boolean isConnected(ClosedRange<C> other) {
-        return Interval.monotonicIncreasingValues(lowerBound, other.upperBound)
-            && Interval.monotonicIncreasingValues(other.lowerBound, upperBound);
+    public boolean isConnected(LeftClosedRange<C> other) {
+        return Interval.strictlyMonotonicIncreasingValues(lowerBound, other.upperBound)
+            && Interval.strictlyMonotonicIncreasingValues(other.lowerBound, upperBound);
     }
     
     /**
      * @return {@code true} if {@code this} interval is a subset of the {@code other} provided interval
      */
-    public boolean isSubsetOf(ClosedRange<C> other) {
+    public boolean isSubsetOf(LeftClosedRange<C> other) {
         return Interval.monotonicIncreasingValues(other.lowerBound, lowerBound)
             && Interval.monotonicIncreasingValues(upperBound, other.upperBound);
     }
@@ -170,26 +157,26 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
      *
      * @return {@code true} if {@code this} interval is a superset of the {@code other} provided interval
      */
-    public boolean isSupersetOf(ClosedRange<C> other) {
+    public boolean isSupersetOf(LeftClosedRange<C> other) {
         return other.isSubsetOf(this);
     }
     
     /**
-     * Creates a new {@link ClosedRange} with its lower bound replace with the given parameter.
+     * Creates a new {@link LeftClosedRange} with its lower bound replace with the given parameter.
      *
      * @throws IllegalArgumentException if the resulting interval would be invalid
      */
-    public ClosedRange<C> withLowerBound(C lowerBound) {
-        return ClosedRange.create(lowerBound, upperBound);
+    public LeftClosedRange<C> withLowerBound(C lowerBound) {
+        return LeftClosedRange.create(lowerBound, upperBound);
     }
     
     /**
-     * Creates a new {@link ClosedRange} with its upper bound replace with the given parameter.
+     * Creates a new {@link LeftClosedRange} with its upper bound replace with the given parameter.
      *
      * @throws IllegalArgumentException if the resulting interval would be invalid
      */
-    public ClosedRange<C> withUpperBound(C upperBound) {
-        return ClosedRange.create(lowerBound, upperBound);
+    public LeftClosedRange<C> withUpperBound(C upperBound) {
+        return LeftClosedRange.create(lowerBound, upperBound);
     }
     
     /**
@@ -197,7 +184,7 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
      * be instantiated if not necessary (if any of the 2 interval is a subset of the other).
      */
     @SuppressWarnings("unchecked")
-    public ClosedRange<C> intersection(ClosedRange<C> other) {
+    public LeftClosedRange<C> intersection(LeftClosedRange<C> other) {
         int lowerCmp = lowerBound.compareTo(other.lowerBound);
         int upperCmp = upperBound.compareTo(other.upperBound);
         if (lowerCmp >= 0 && upperCmp <= 0) {
@@ -213,32 +200,14 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
     }
     
     /**
-     * Creates a {@link ClosedRange} which is the smallest superset of the current interval and also contains the
-     * provided {@code value}. If {@code contains(value)} was already {@true} then this instance will be returned.
-     *
-     * @param value the value to extend the current interval with
-     * @return the extended interval
-     */
-    public ClosedRange<C> extendWithValue(C value) {
-        if (contains(value)) {
-            return this;
-        }
-        if (Interval.strictlyMonotonicIncreasingValues(value, lowerBound)) {
-            return withLowerBound(value);
-        }
-        cannotHappen(Interval.monotonicIncreasingValues(value, upperBound), () -> "extendWithValue(" + value + ") failed: " + toString());
-        return withUpperBound(value);
-    }
-    
-    /**
-     * Creates a {@link ClosedRange} which is the smallest superset of the current interval which also contains all
-     * elements of the provided {@code other} {@link ClosedRange}. I {@code other.isSubsetOf(this)} was already {@true}
+     * Creates a {@link LeftClosedRange} which is the smallest superset of the current interval which also contains all
+     * elements of the provided {@code other} {@link LeftClosedRange}. I {@code other.isSubsetOf(this)} was already {@true}
      * then this instance will be returned.
      *
      * @param other the other interval to extend the current one with
      * @return the extended interval
      */
-    public ClosedRange<C> extendWithRange(ClosedRange<C> other) {
+    public LeftClosedRange<C> extendWithRange(LeftClosedRange<C> other) {
         int lowerCmp = lowerBound.compareTo(other.lowerBound);
         int upperCmp = upperBound.compareTo(other.upperBound);
         if (lowerCmp <= 0 && upperCmp >= 0) {
@@ -256,7 +225,7 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ClosedRange that = (ClosedRange) o;
+        LeftClosedRange that = (LeftClosedRange) o;
         if (lowerBound.compareTo(that.lowerBound) != 0) return false;
         return upperBound.compareTo(that.upperBound) == 0;
         
@@ -269,8 +238,8 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
     }
     
     /**
-     * Important to note that the {@link ClosedRange#toString()} representation follows the mathematical interval
-     * notation of {@code [lowerBound; upperBound]}. Using the "; " as separator is important since some number formats
+     * Important to note that the {@link LeftClosedRange#toString()} representation follows the mathematical interval
+     * notation of {@code [lowerBound; upperBound)}. Using the "; " as separator is important since some number formats
      * may use the ',' in their {@link String} representation. The type of the interval's type argument is responsible
      * for providing its own {@link String} representation with its {@code toString()} method.
      */
@@ -282,52 +251,51 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
     
     private static final String SEPARATOR = "; ";
     
-    private static final char CLOSE_SYMBOL = ']';
+    private static final char CLOSE_SYMBOL = ')';
     
     @Beta
-    public static final BigDecimal decimalLengthOf(ClosedRange<BigDecimal> decimalRange) {
+    public static final BigDecimal decimalLengthOf(LeftClosedRange<BigDecimal> decimalRange) {
         return decimalRange.getUpperBound()
             .subtract(decimalRange.getLowerBound());
     }
     
     /**
-     * Computes the discrete element count of the provided {@code ClosedRange<BigInteger>} interval.
+     * Computes the discrete element count of the provided {@code LeftClosedRange<BigInteger>} interval.
      */
-    public static final BigInteger countBigints(ClosedRange<BigInteger> bigintRange) {
+    public static final BigInteger countBigints(LeftClosedRange<BigInteger> bigintRange) {
         return bigintRange.getUpperBound()
-            .subtract(bigintRange.getLowerBound())
-            .add(BigInteger.ONE);
+            .subtract(bigintRange.getLowerBound());
     }
     
     /**
-     * Computes the discrete element count of the provided {@code ClosedRange<Long>} interval. The return value is a
+     * Computes the discrete element count of the provided {@code LeftClosedRange<Long>} interval. The return value is a
      * {@link BigInteger}, because the element count for valid interval could be larger than {@link Long#MAX_VALUE},
      * furthermore the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
      * where needed.
      */
-    public static final BigInteger countLongs(ClosedRange<Long> longRange) {
+    public static final BigInteger countLongs(LeftClosedRange<Long> longRange) {
         return countBigints(longRange.convert(BigInteger::valueOf));
     }
     
     /**
-     * Computes the discrete element count of the provided {@code ClosedRange<Integer>} interval. The return value is a
+     * Computes the discrete element count of the provided {@code LeftClosedRange<Integer>} interval. The return value is a
      * {@link BigInteger}, because the element count for valid interval could be larger than {@link Integer#MAX_VALUE},
-     * however the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
-     * where needed. This is also the reason to choose {@link BigInteger} as a return type here over {@link Long}.
+     * furthermore the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
+     * where needed.
      */
-    public static final BigInteger countInts(ClosedRange<Integer> intRange) {
-        long size = intRange.getUpperBound().longValue() - intRange.getLowerBound().longValue() + 1L;
+    public static final BigInteger countInts(LeftClosedRange<Integer> intRange) {
+        long size = intRange.getUpperBound().longValue() - intRange.getLowerBound().longValue();
         return BigInteger.valueOf(size);
     }
     
     public static class IntElementsSet extends AbstractSet<Integer> {
         
-        private final ClosedRange<Integer> range;
+        private final LeftClosedRange<Integer> range;
         private final int size;
         
-        public IntElementsSet(ClosedRange<Integer> range) {
+        public IntElementsSet(LeftClosedRange<Integer> range) {
             this.range = range;
-            this.size = ClosedRange.countInts(range).intValueExact();
+            this.size = LeftClosedRange.countInts(range).intValueExact();
         }
         
         public Iterator<Integer> iterator() {
@@ -372,12 +340,12 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
     
     public static class LongElementsSet extends AbstractSet<Long> {
         
-        private final ClosedRange<Long> range;
+        private final LeftClosedRange<Long> range;
         private final int size;
         
-        public LongElementsSet(ClosedRange<Long> range) {
+        public LongElementsSet(LeftClosedRange<Long> range) {
             this.range = range;
-            this.size = ClosedRange.countLongs(range).intValueExact();
+            this.size = LeftClosedRange.countLongs(range).intValueExact();
         }
         
         public Iterator<Long> iterator() {

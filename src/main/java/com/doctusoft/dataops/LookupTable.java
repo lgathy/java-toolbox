@@ -67,7 +67,7 @@ public final class LookupTable<K, V> {
     }
 
     public V get(int ordinal) {
-        validRange.mustContain(ordinal, "index");
+        validRange.checkContains(ordinal, "index");
         return (V) table[ordinal];
     }
 
