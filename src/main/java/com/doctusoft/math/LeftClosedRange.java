@@ -270,7 +270,7 @@ public class LeftClosedRange<C extends Comparable> implements Interval<C> {
     /**
      * Computes the discrete element count of the provided {@code LeftClosedRange<Long>} interval. The return value is a
      * {@link BigInteger}, because the element count for valid interval could be larger than {@link Long#MAX_VALUE},
-     * however the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
+     * furthermore the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
      * where needed.
      */
     public static final BigInteger countLongs(LeftClosedRange<Long> longRange) {
@@ -280,8 +280,8 @@ public class LeftClosedRange<C extends Comparable> implements Interval<C> {
     /**
      * Computes the discrete element count of the provided {@code LeftClosedRange<Integer>} interval. The return value is a
      * {@link BigInteger}, because the element count for valid interval could be larger than {@link Integer#MAX_VALUE},
-     * however the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
-     * where needed. This is also the reason to choose {@link BigInteger} as a return type here over {@link Long}.
+     * furthermore the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
+     * where needed.
      */
     public static final BigInteger countInts(LeftClosedRange<Integer> intRange) {
         long size = intRange.getUpperBound().longValue() - intRange.getLowerBound().longValue();
@@ -301,7 +301,7 @@ public class LeftClosedRange<C extends Comparable> implements Interval<C> {
         public Iterator<Integer> iterator() {
             class Itr implements Iterator<Integer> {
                 
-                private Integer nextValue = range.getLowerBound();;
+                private Integer nextValue = range.getLowerBound();
                 
                 public boolean hasNext() {
                     return range.contains(nextValue);
@@ -351,7 +351,7 @@ public class LeftClosedRange<C extends Comparable> implements Interval<C> {
         public Iterator<Long> iterator() {
             class Itr implements Iterator<Long> {
                 
-                private Long nextValue = range.getLowerBound();;
+                private Long nextValue = range.getLowerBound();
                 
                 public boolean hasNext() {
                     return range.contains(nextValue);

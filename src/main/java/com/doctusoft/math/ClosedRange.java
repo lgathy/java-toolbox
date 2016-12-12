@@ -302,7 +302,7 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
     /**
      * Computes the discrete element count of the provided {@code ClosedRange<Long>} interval. The return value is a
      * {@link BigInteger}, because the element count for valid interval could be larger than {@link Long#MAX_VALUE},
-     * however the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
+     * furthermore the {@link BigInteger} class has a wide range of methods to do the necessary (checked) conversions
      * where needed.
      */
     public static final BigInteger countLongs(ClosedRange<Long> longRange) {
@@ -334,7 +334,6 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
             class Itr implements Iterator<Integer> {
                 
                 private Integer nextValue = range.getLowerBound();
-                ;
                 
                 public boolean hasNext() {
                     return range.contains(nextValue);
@@ -385,7 +384,6 @@ public class ClosedRange<C extends Comparable> implements Interval<C> {
             class Itr implements Iterator<Long> {
                 
                 private Long nextValue = range.getLowerBound();
-                ;
                 
                 public boolean hasNext() {
                     return range.contains(nextValue);
