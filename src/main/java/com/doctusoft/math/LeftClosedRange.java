@@ -63,7 +63,7 @@ public class LeftClosedRange<C extends Comparable> implements Interval<C> {
             if (input.charAt(0) != OPEN_SYMBOL) break parse;
             int lastCharAt = input.length() - 1;
             if (input.charAt(lastCharAt) != CLOSE_SYMBOL) break parse;
-            String[] parts = SEPARATOR.split(input.substring(1, lastCharAt));
+            String[] parts = input.substring(1, lastCharAt).split(SEPARATOR);
             if (parts.length != 2) break parse;
             return new LeftClosedRange<>(parserFun.apply(parts[0]), parserFun.apply(parts[1]));
         }

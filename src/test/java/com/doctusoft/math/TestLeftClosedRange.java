@@ -2,11 +2,11 @@ package com.doctusoft.math;
 
 import com.doctusoft.java.AnException;
 import com.doctusoft.java.LambdAssert;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.concurrent.*;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
 public class TestLeftClosedRange {
@@ -50,7 +50,15 @@ public class TestLeftClosedRange {
         LeftClosedRange<Integer> range3 = LeftClosedRange.create(4, 9);
         assertThat(
             LambdAssert.assertComputes("LeftClosedRange.intersection()", () -> range1.intersection(range3)),
-            Matchers.equalTo(LeftClosedRange.create(4, 5)));
+            equalTo(LeftClosedRange.create(4, 5)));
+    }
+    
+    @Test
+    public void parse() {
+        LeftClosedRange<String> range = LeftClosedRange.parse("[A; B)");
+        assertNotNull(range);
+        assertThat(range.getLowerBound(), equalTo("A"));
+        assertThat(range.getUpperBound(), equalTo("B"));
     }
     
 }
