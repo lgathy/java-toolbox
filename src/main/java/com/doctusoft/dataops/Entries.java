@@ -111,4 +111,8 @@ public interface Entries<K, V> {
         return new EntryGroups<>(this, groupFactory);
     }
     
+    default <T> Stream<T> stream(BiFunction<K, V, T> mapperFun) {
+        return StreamSupport.stream(new EntriesSpliterator<>(this, mapperFun), false);
+    }
+    
 }
