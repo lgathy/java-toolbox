@@ -68,6 +68,24 @@ public interface ExponentialDelays {
          * @return a new {@link IntStream} instance returning the desired int delay values
          */
         IntStream build();
+    
+        /**
+         * @return a finite list containing all delays up until the point where they start repeating
+         */
+        default List<Integer> buildConfig() {
+            PrimitiveIterator.OfInt it = build().iterator();
+            if (!it.hasNext()) return Collections.emptyList();
+            ArrayList<Integer> config = new ArrayList<>();
+            int last = it.nextInt();
+            config.add(last);
+            while (it.hasNext()) {
+                int next = it.nextInt();
+                if (next == last) return config;
+                config.add(next);
+                last = next;
+            }
+            return config;
+        }
     }
     
     /**
@@ -103,6 +121,24 @@ public interface ExponentialDelays {
          * @return a new {@link IntStream} instance returning the desired int delay values
          */
         LongStream build();
+        
+        /**
+         * @return a finite list containing all delays up until the point where they start repeating
+         */
+        default List<Long> buildConfig() {
+            PrimitiveIterator.OfLong it = build().iterator();
+            if (!it.hasNext()) return Collections.emptyList();
+            ArrayList<Long> config = new ArrayList<>();
+            long last = it.nextLong();
+            config.add(last);
+            while (it.hasNext()) {
+                long next = it.nextLong();
+                if (next == last) return config;
+                config.add(next);
+                last = next;
+            }
+            return config;
+        }
     }
     
     /**

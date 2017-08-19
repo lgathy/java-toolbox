@@ -22,8 +22,8 @@ public class ComputeCache<K, V> implements Serializable {
 
     private final Map<K, V> map;
     private final Function<? super K, ? extends V> computeFun;
-
-    private ComputeCache(Map<K, V> map, Function<? super K, ? extends V> computeFun) {
+    
+    public ComputeCache(Map<K, V> map, Function<? super K, ? extends V> computeFun) {
         this.map = requireNonNull(map, "map");
         this.computeFun = requireNonNull(computeFun, "computeFun");
     }
